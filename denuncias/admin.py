@@ -1,14 +1,65 @@
 from django.contrib import admin
+from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
+from django.contrib.auth.forms import UserCreationForm, UserChangeForm
 from .models import (
     User, ConsultorioJuridico, AnexoUsuario, ActividadEconomica, InformacionEconomica, InformacionPatrimonial,
     RelacionHechos, SolucionCaso, UsuarioAsesorado, FeedbackDocente, HistorialModificacion
 )
 
+
+class CustomUserCreationForm(UserCreationForm):
+    """Formulario para crear nuevos usuarios con contraseña hasheada"""
+    class Meta:
+        model = User
+        fields = ('username', 'email')
+
+
+class CustomUserChangeForm(UserChangeForm):
+    """Formulario para editar usuarios existentes"""
+    class Meta:
+        model = User
+        fields = '__all__'
+
+
 @admin.register(User)
-class UserAdmin(admin.ModelAdmin):
-    list_display = ('username', 'email', 'rol', 'is_active', 'is_staff')
-    search_fields = ('username', 'email', 'first_name', 'last_name')
-    list_filter = ('rol', 'is_active', 'is_staff')
+class UserAdmin(BaseUserAdmin):
+    form = CustomUserChangeForm
+    add_form = CustomUserCreationForm
+
+    list_display = ('username', 'email', 'first_name', 'last_name', 'rol', 'is_active', 'is_staff')
+    search_fields = ('username', 'email', 'first_name', 'last_name', 'document_number')
+    list_filter = ('rol', 'is_active', 'is_staff', 'date_joined')
+    ordering = ('-date_joined',)
+
+    # Campos para editar usuario existente
+    fieldsets = (
+        (None, {'fields': ('username', 'password')}),
+        ('Información Personal', {'fields': ('first_name', 'last_name', 'email', 'telefono')}),
+        ('Documento', {'fields': ('document_type', 'document_number')}),
+        ('Dirección', {'fields': ('address', 'neighborhood', 'city')}),
+        ('Permisos', {'fields': ('rol', 'is_active', 'is_staff', 'is_superuser', 'groups', 'user_permissions')}),
+        ('Fechas', {'fields': ('last_login', 'date_joined')}),
+    )
+
+    # Campos para crear nuevo usuario
+    add_fieldsets = (
+        (None, {
+            'classes': ('wide',),
+            'fields': ('username', 'email', 'password1', 'password2'),
+        }),
+        ('Información Personal', {
+            'classes': ('wide',),
+            'fields': ('first_name', 'last_name', 'telefono'),
+        }),
+        ('Documento', {
+            'classes': ('wide',),
+            'fields': ('document_type', 'document_number'),
+        }),
+        ('Rol', {
+            'classes': ('wide',),
+            'fields': ('rol', 'is_active', 'is_staff'),
+        }),
+    )
 
 @admin.register(ConsultorioJuridico)
 class ConsultorioJuridicoAdmin(admin.ModelAdmin):
