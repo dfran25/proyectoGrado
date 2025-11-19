@@ -1,0 +1,262 @@
+{% extends 'base.html' %}
+
+{% block title %}Nueva Denuncia - Sistema Jurídico{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-10">
+        <!-- Header -->
+        <div class="text-center mb-5">
+            <h2><i class="bi bi-plus-circle-dotted"></i> Nueva Denuncia Jurídica</h2>
+            <p class="text-muted">Inicia el proceso de registro de tu denuncia siguiendo nuestro wizard paso a paso</p>
+        </div>
+
+        <!-- Process Overview -->
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="bi bi-info-circle"></i> Información del Proceso</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6><i class="bi bi-clock"></i> Tiempo estimado</h6>
+                        <p class="text-muted">15-30 minutos aproximadamente</p>
+                        
+                        <h6><i class="bi bi-save"></i> Guardado automático</h6>
+                        <p class="text-muted">Tu progreso se guarda automáticamente</p>
+                    </div>
+                    <div class="col-md-6">
+                        <h6><i class="bi bi-shield-check"></i> Confidencialidad</h6>
+                        <p class="text-muted">Toda la información está protegida</p>
+                        
+                        <h6><i class="bi bi-headset"></i> Soporte</h6>
+                        <p class="text-muted">Asistencia disponible en cada paso</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Steps Overview -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-list-ol"></i> Pasos del Proceso</h5>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-6 col-lg-4">
+                        <div class="d-flex align-items-start">
+                            <div class="step-circle step-pending me-3">1</div>
+                            <div>
+                                <h6>Información Personal</h6>
+                                <small class="text-muted">Datos básicos del denunciante</small>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6 col-lg-4">
+                        <div class="d-flex align-items-start">
+                            <div class="step-circle step-pending me-3">2</div>
+                            <div>
+                                <h6>Tipo de Caso</h6>
+                                <small class="text-muted">Categorización de la denuncia</small>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6 col-lg-4">
+                        <div class="d-flex align-items-start">
+                            <div class="step-circle step-pending me-3">3</div>
+                            <div>
+                                <h6>Información Demandado</h6>
+                                <small class="text-muted">Datos de la contraparte</small>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6 col-lg-4">
+                        <div class="d-flex align-items-start">
+                            <div class="step-circle step-pending me-3">4</div>
+                            <div>
+                                <h6>Hechos y Circunstancias</h6>
+                                <small class="text-muted">Narración de los eventos</small>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6 col-lg-4">
+                        <div class="d-flex align-items-start">
+                            <div class="step-circle step-pending me-3">5</div>
+                            <div>
+                                <h6>Daños y Perjuicios</h6>
+                                <small class="text-muted">Detalle de afectaciones</small>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6 col-lg-4">
+                        <div class="d-flex align-items-start">
+                            <div class="step-circle step-pending me-3">6</div>
+                            <div>
+                                <h6>Pruebas</h6>
+                                <small class="text-muted">Documentos y evidencias</small>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6 col-lg-4">
+                        <div class="d-flex align-items-start">
+                            <div class="step-circle step-pending me-3">7</div>
+                            <div>
+                                <h6>Testigos</h6>
+                                <small class="text-muted">Personas que presenciaron</small>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6 col-lg-4">
+                        <div class="d-flex align-items-start">
+                            <div class="step-circle step-pending me-3">8</div>
+                            <div>
+                                <h6>Pretensiones</h6>
+                                <small class="text-muted">Lo que solicitas</small>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6 col-lg-4">
+                        <div class="d-flex align-items-start">
+                            <div class="step-circle step-pending me-3">9</div>
+                            <div>
+                                <h6>Información Adicional</h6>
+                                <small class="text-muted">Detalles complementarios</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Important Notes -->
+        <div class="alert alert-info">
+            <h6><i class="bi bi-exclamation-triangle"></i> Importante</h6>
+            <ul class="mb-0">
+                <li>Asegúrate de tener toda la información necesaria antes de comenzar</li>
+                <li>Puedes pausar el proceso en cualquier momento y continuar después</li>
+                <li>Revisa cuidadosamente la información antes de enviar</li>
+                <li>Una vez enviado, algunos datos no podrán modificarse</li>
+            </ul>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="text-center">
+            <div class="d-grid gap-2 d-md-flex justify-content-md-center">
+                <a href="{% url 'denuncias:dashboard' %}" class="btn btn-outline-secondary btn-lg">
+                    <i class="bi bi-arrow-left"></i> Volver al Dashboard
+                </a>
+                <a href="{% url 'denuncias:wizard_paso' 'paso1' %}" class="btn btn-primary btn-lg">
+                    <i class="bi bi-arrow-right"></i> Comenzar Proceso
+                </a>
+            </div>
+        </div>
+
+        <!-- Continue Previous Case -->
+        {% if casos_incompletos %}
+        <div class="mt-5">
+            <div class="card border-warning">
+                <div class="card-header bg-warning text-dark">
+                    <h6 class="mb-0"><i class="bi bi-clock-history"></i> Continuar Caso Anterior</h6>
+                </div>
+                <div class="card-body">
+                    <p class="mb-3">Tienes casos sin completar. ¿Deseas continuar con alguno de ellos?</p>
+                    <div class="row">
+                        {% for caso in casos_incompletos %}
+                        <div class="col-md-6 mb-3">
+                            <div class="card border-light">
+                                <div class="card-body">
+                                    <h6 class="card-title">Caso #{{ caso.id }}</h6>
+                                    <p class="card-text">
+                                        <small class="text-muted">
+                                            Iniciado: {{ caso.fecha_creacion|date:"d/m/Y H:i" }}<br>
+                                            Última actualización: {{ caso.fecha_actualizacion|date:"d/m/Y H:i" }}
+                                        </small>
+                                    </p>
+                                    <div class="d-grid">
+                                        <a href="{% url 'denuncias:wizard_inicio' %}?caso_id={{ caso.id }}" class="btn btn-outline-warning btn-sm">
+                                            <i class="bi bi-play-circle"></i> Continuar
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Help Modal Trigger -->
+<div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
+    <button type="button" class="btn btn-primary btn-floating" data-bs-toggle="modal" data-bs-target="#helpModal" title="Ayuda">
+        <i class="bi bi-question-circle fs-4"></i>
+    </button>
+</div>
+
+<!-- Help Modal -->
+<div class="modal fade" id="helpModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-question-circle"></i> ¿Necesitas Ayuda?</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <h6>Antes de comenzar, asegúrate de tener:</h6>
+                <ul>
+                    <li>Documento de identidad</li>
+                    <li>Información de contacto actualizada</li>
+                    <li>Detalles específicos del caso</li>
+                    <li>Documentos de soporte (si los tienes)</li>
+                    <li>Información de testigos (si aplica)</li>
+                </ul>
+                
+                <hr>
+                
+                <h6>Durante el proceso:</h6>
+                <ul>
+                    <li>Lee cuidadosamente cada pregunta</li>
+                    <li>Proporciona información precisa y completa</li>
+                    <li>Usa el botón "Guardar y Continuar" regularmente</li>
+                    <li>Si tienes dudas, no dudes en contactar soporte</li>
+                </ul>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                <a href="{% url 'denuncias:wizard_paso' 'paso1' %}" class="btn btn-primary">Comenzar</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .btn-floating {
+        border-radius: 50%;
+        width: 60px;
+        height: 60px;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    }
+    
+    .step-circle {
+        min-width: 40px;
+        flex-shrink: 0;
+    }
+    
+    .card-hover:hover {
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+</style>
+{% endblock %}

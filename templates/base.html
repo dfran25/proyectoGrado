@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{% block title %}Sistema Jurídico{% endblock %}</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+  <style>
+    :root {
+      --brand-orange: #f97316;
+      --brand-purple: #7c3aed;
+    }
+    
+    .brand-bar { 
+      background: linear-gradient(135deg, var(--brand-orange) 0%, var(--brand-purple) 100%);
+    }
+    
+    .btn-primary, .bg-primary { 
+      background-color: var(--brand-purple) !important; 
+      border-color: var(--brand-purple) !important; 
+    }
+    
+    .nav-link.active { 
+      font-weight: 600; 
+      background-color: rgba(255,255,255,0.2) !important;
+      border-radius: 6px;
+    }
+    
+    .nav-link:hover {
+      background-color: rgba(255,255,255,0.1);
+      border-radius: 6px;
+      transition: all 0.3s ease;
+    }
+    
+    .role-badge {
+      background: rgba(255,255,255,0.2);
+      color: white;
+      padding: 0.25rem 0.75rem;
+      border-radius: 15px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      margin-left: 0.5rem;
+    }
+    
+    .dropdown-toggle::after {
+      margin-left: 0.5rem;
+    }
+  </style>
+  {% block extra_css %}{% endblock %}
+</head>
+<body>
+  {% if user.is_authenticated %}
+  <nav class="navbar navbar-expand-lg navbar-dark brand-bar">
+    <div class="container">
+      <a class="navbar-brand fw-bold d-flex align-items-center" href="{% url 'denuncias:dashboard' %}">
+        <i class="bi bi-shield-check me-2"></i> Sistema Jurídico
+      </a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="mainNav">
+        <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'denuncias:dashboard' %}">
+              <i class="bi bi-house-door me-1"></i>Dashboard
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'denuncias:casos_lista' %}">
+              <i class="bi bi-list-task me-1"></i>Mis Casos
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'denuncias:wizard_inicio' %}">
+              <i class="bi bi-plus-circle me-1"></i>Nueva denuncia
+            </a>
+          </li>
+          
+          <!-- NAVEGACIÓN CONDICIONAL PARA DOCENTES -->
+          {% if user.rol == 'admin' %}
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+              <i class="bi bi-mortarboard me-1"></i>Panel Docente
+            </a>
+            <ul class="dropdown-menu">
+              <li><a class="dropdown-item" href="{% url 'denuncias:dashboard_docente' %}">
+                <i class="bi bi-speedometer2 me-2"></i>Dashboard Docente
+              </a></li>
+              <li><a class="dropdown-item" href="{% url 'denuncias:lista_casos_docente' %}">
+                <i class="bi bi-list-ul me-2"></i>Gestionar Casos
+              </a></li>
+              <li><hr class="dropdown-divider"></li>
+              <li><a class="dropdown-item" href="{% url 'denuncias:lista_casos_docente' %}?status=submitted">
+                <i class="bi bi-clock-history me-2"></i>Casos Pendientes
+              </a></li>
+            </ul>
+          </li>
+          {% endif %}
+        </ul>
+        
+        <div class="d-flex align-items-center">
+          <!-- Badge de rol -->
+          {% if user.rol == 'admin' %}
+            <span class="role-badge">
+              <i class="bi bi-mortarboard me-1"></i>Docente
+            </span>
+          {% elif user.rol == 'estudiante' %}
+            <span class="role-badge">
+              <i class="bi bi-person-graduation me-1"></i>Estudiante
+            </span>
+          {% else %}
+            <span class="role-badge">
+              <i class="bi bi-person me-1"></i>Cliente
+            </span>
+          {% endif %}
+          
+          <!-- Dropdown de usuario -->
+          <div class="dropdown ms-3">
+            <a class="btn btn-light dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+              <i class="bi bi-person-circle me-1"></i>
+              <strong>{{ user.get_full_name|default:user.username }}</strong>
+            </a>
+            <ul class="dropdown-menu dropdown-menu-end">
+              <!-- Opciones comunes -->
+              <li><a class="dropdown-item" href="{% url 'denuncias:dashboard' %}">
+                <i class="bi bi-grid me-2"></i> Dashboard Principal
+              </a></li>
+              <li><a class="dropdown-item" href="{% url 'denuncias:casos_lista' %}">
+                <i class="bi bi-list-task me-2"></i> Mis casos
+              </a></li>
+              
+              <!-- Opciones específicas por rol -->
+              {% if user.rol == 'admin' %}
+                <li><hr class="dropdown-divider"></li>
+                <li><h6 class="dropdown-header">Panel Docente</h6></li>
+                <li><a class="dropdown-item" href="{% url 'denuncias:dashboard_docente' %}">
+                  <i class="bi bi-mortarboard me-2"></i> Dashboard Docente
+                </a></li>
+                <li><a class="dropdown-item" href="{% url 'denuncias:lista_casos_docente' %}">
+                  <i class="bi bi-list-ul me-2"></i> Gestionar Casos
+                </a></li>
+              {% endif %}
+              
+              <li><hr class="dropdown-divider"></li>
+              
+              <!-- Opción de cambiar vista (para docentes) -->
+              {% if user.rol == 'admin' %}
+                <li><a class="dropdown-item" href="{% url 'denuncias:dashboard' %}">
+                  <i class="bi bi-arrow-left-right me-2"></i> Vista Estudiante
+                </a></li>
+                <li><hr class="dropdown-divider"></li>
+              {% endif %}
+              
+              <!-- Perfil y logout -->
+              <li><a class="dropdown-item" href="#" onclick="alert('Funcionalidad de perfil próximamente')">
+                <i class="bi bi-person-gear me-2"></i> Mi Perfil
+              </a></li>
+              <li>
+                <form method="post" action="{% url 'logout' %}" class="d-inline">
+                  {% csrf_token %}
+                  <button type="submit" class="dropdown-item text-danger">
+                    <i class="bi bi-box-arrow-right me-2"></i> Cerrar sesión
+                  </button>
+                </form>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </nav>
+  {% endif %}
+  
+  <!-- Mensajes de Django -->
+  {% if messages %}
+    <div class="container mt-3">
+      {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+          {% if message.tags == 'error' %}
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+          {% elif message.tags == 'success' %}
+            <i class="bi bi-check-circle-fill me-2"></i>
+          {% elif message.tags == 'warning' %}
+            <i class="bi bi-exclamation-circle-fill me-2"></i>
+          {% else %}
+            <i class="bi bi-info-circle-fill me-2"></i>
+          {% endif %}
+          {{ message }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+  
+  <main class="container py-4">
+    {% block content %}{% endblock %}
+  </main>
+  
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  {% block extra_js %}{% endblock %}
+</body>
+</html>

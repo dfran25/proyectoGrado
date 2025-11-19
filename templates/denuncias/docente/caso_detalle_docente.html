@@ -1,0 +1,393 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Revisar Caso {{ caso.nua }} - Sistema Jurídico{% endblock %}
+
+{% block extra_css %}
+<style>
+    .feedback-card {
+        border-left: 4px solid #6c757d;
+        margin-bottom: 1rem;
+    }
+    .feedback-card.aprobado { border-left-color: #28a745; }
+    .feedback-card.revision { border-left-color: #ffc107; }
+    .feedback-card.rechazado { border-left-color: #dc3545; }
+    .feedback-card.critico { background-color: #fff3cd; }
+
+    .seccion-tag {
+        display: inline-block;
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.875rem;
+        font-weight: 600;
+    }
+
+    .timeline {
+        position: relative;
+        padding-left: 30px;
+    }
+
+    .timeline::before {
+        content: '';
+        position: absolute;
+        left: 10px;
+        top: 0;
+        bottom: 0;
+        width: 2px;
+        background: #dee2e6;
+    }
+
+    .timeline-item {
+        position: relative;
+        padding-bottom: 2rem;
+    }
+
+    .timeline-item::before {
+        content: '';
+        position: absolute;
+        left: -24px;
+        top: 0;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: #007bff;
+        border: 2px solid #fff;
+        box-shadow: 0 0 0 2px #dee2e6;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'denuncias:dashboard_docente' %}">Dashboard Docente</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'denuncias:lista_casos_docente' %}">Lista de Casos</a></li>
+            <li class="breadcrumb-item active">{{ caso.nua }}</li>
+        </ol>
+    </nav>
+
+    <!-- Header del Caso -->
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h2 class="mb-2">
+                <i class="bi bi-folder-open text-primary"></i> {{ caso.nua }}
+            </h2>
+            <p class="text-muted mb-2">
+                <strong>Área:</strong> {{ caso.get_consultation_area_display }} |
+                <strong>Estudiante:</strong> {{ estudiante.get_full_name|default:estudiante.username }}
+            </p>
+            {% if caso_asignado %}
+            <span class="badge bg-primary">
+                <i class="bi bi-person-check"></i> Asignado a ti
+            </span>
+            {% endif %}
+        </div>
+        <div class="col-md-4 text-end">
+            {% if caso.status == 'draft' %}
+                <span class="badge bg-secondary fs-5">{{ caso.get_status_display }}</span>
+            {% elif caso.status == 'submitted' %}
+                <span class="badge bg-info fs-5">{{ caso.get_status_display }}</span>
+            {% elif caso.status == 'in_review' %}
+                <span class="badge bg-warning fs-5">{{ caso.get_status_display }}</span>
+            {% elif caso.status == 'reviewed' %}
+                <span class="badge bg-success fs-5">{{ caso.get_status_display }}</span>
+            {% elif caso.status == 'rejected' %}
+                <span class="badge bg-danger fs-5">{{ caso.get_status_display }}</span>
+            {% else %}
+                <span class="badge bg-primary fs-5">{{ caso.get_status_display }}</span>
+            {% endif %}
+            <p class="small text-muted mt-2">
+                Creado: {{ caso.created_at|date:"d/m/Y H:i" }}<br>
+                Actualizado: {{ caso.updated_at|date:"d/m/Y H:i" }}
+            </p>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Columna Izquierda: Información del Caso -->
+        <div class="col-lg-8">
+            <!-- Tabs de Información -->
+            <ul class="nav nav-tabs mb-3" id="casoTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="personal-tab" data-bs-toggle="tab" data-bs-target="#personal">
+                        <i class="bi bi-person"></i> Personal
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="economica-tab" data-bs-toggle="tab" data-bs-target="#economica">
+                        <i class="bi bi-cash"></i> Económica
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="hechos-tab" data-bs-toggle="tab" data-bs-target="#hechos">
+                        <i class="bi bi-file-text"></i> Hechos
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="solucion-tab" data-bs-toggle="tab" data-bs-target="#solucion">
+                        <i class="bi bi-lightbulb"></i> Solución
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="anexos-tab" data-bs-toggle="tab" data-bs-target="#anexos">
+                        <i class="bi bi-paperclip"></i> Anexos
+                    </button>
+                </li>
+            </ul>
+
+            <!-- Tab Content -->
+            <div class="tab-content" id="casoTabsContent">
+                <!-- Tab Personal -->
+                <div class="tab-pane fade show active" id="personal">
+                    {% if usuario_asesorado %}
+                    <div class="card">
+                        <div class="card-header bg-primary text-white">
+                            <h5 class="mb-0"><i class="bi bi-person-circle"></i> Información Personal</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <p><strong>Nombre:</strong> {{ usuario_asesorado.full_name }}</p>
+                                    <p><strong>Documento:</strong> {{ usuario_asesorado.get_document_type_display }} - {{ usuario_asesorado.document_number }}</p>
+                                    <p><strong>Dirección:</strong> {{ usuario_asesorado.address }}</p>
+                                    <p><strong>Ciudad:</strong> {{ usuario_asesorado.city }}</p>
+                                </div>
+                                <div class="col-md-6">
+                                    <p><strong>Teléfono:</strong> {{ usuario_asesorado.phone }}</p>
+                                    <p><strong>Email:</strong> {{ usuario_asesorado.email }}</p>
+                                    <p><strong>Estado civil:</strong> {{ usuario_asesorado.get_civil_status_display }}</p>
+                                    <p><strong>Ocupación:</strong> {{ usuario_asesorado.occupation }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="alert alert-warning">No hay información personal registrada</div>
+                    {% endif %}
+                </div>
+
+                <!-- Tab Económica -->
+                <div class="tab-pane fade" id="economica">
+                    {% if info_economica %}
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <div class="card">
+                                <div class="card-header bg-success text-white">
+                                    <h6 class="mb-0">Ingresos</h6>
+                                </div>
+                                <div class="card-body">
+                                    <p>Salariales: ${{ info_economica.ingresos_salariales|floatformat:0 }}</p>
+                                    <p>Honorarios: ${{ info_economica.ingresos_honorarios|floatformat:0 }}</p>
+                                    <p>Otros: ${{ info_economica.otros_ingresos|floatformat:0 }}</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="card">
+                                <div class="card-header bg-warning text-white">
+                                    <h6 class="mb-0">Egresos</h6>
+                                </div>
+                                <div class="card-body">
+                                    <p>Alimentación: ${{ info_economica.gastos_alimentacion|floatformat:0 }}</p>
+                                    <p>Transporte: ${{ info_economica.gastos_transporte|floatformat:0 }}</p>
+                                    <p>Otros: ${{ info_economica.otros_egresos|floatformat:0 }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="alert alert-warning">No hay información económica registrada</div>
+                    {% endif %}
+                </div>
+
+                <!-- Tab Hechos -->
+                <div class="tab-pane fade" id="hechos">
+                    {% if relacion_hechos %}
+                    <div class="card">
+                        <div class="card-header bg-danger text-white">
+                            <h5 class="mb-0"><i class="bi bi-file-text"></i> Relación de Hechos</h5>
+                        </div>
+                        <div class="card-body">
+                            <p style="white-space: pre-wrap;">{{ relacion_hechos.descripcion_hechos }}</p>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="alert alert-warning">No hay relación de hechos registrada</div>
+                    {% endif %}
+                </div>
+
+                <!-- Tab Solución -->
+                <div class="tab-pane fade" id="solucion">
+                    {% if solucion %}
+                    <div class="card">
+                        <div class="card-header bg-info text-white">
+                            <h5 class="mb-0"><i class="bi bi-lightbulb"></i> Solución Propuesta</h5>
+                        </div>
+                        <div class="card-body">
+                            <p style="white-space: pre-wrap;">{{ solucion.solucion_propuesta }}</p>
+                            <hr>
+                            <p><strong>Estudiante:</strong> {{ solucion.estudiante_nombre }} ({{ solucion.estudiante_codigo }})</p>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="alert alert-warning">No hay solución registrada</div>
+                    {% endif %}
+                </div>
+
+                <!-- Tab Anexos -->
+                <div class="tab-pane fade" id="anexos">
+                    {% if anexos %}
+                    <div class="card">
+                        <div class="card-header bg-secondary text-white">
+                            <h5 class="mb-0"><i class="bi bi-paperclip"></i> Anexos Adjuntos</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="list-group">
+                                {% for anexo in anexos %}
+                                <div class="list-group-item">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <h6 class="mb-1">{{ anexo.nombre_anexo }}</h6>
+                                            <small class="text-muted">{{ anexo.descripcion }}</small>
+                                        </div>
+                                        <a href="{{ anexo.archivo.url }}" target="_blank" class="btn btn-sm btn-primary">
+                                            <i class="bi bi-download"></i> Descargar
+                                        </a>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="alert alert-warning">No hay anexos adjuntos</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Columna Derecha: Feedback -->
+        <div class="col-lg-4">
+            <!-- Formulario de Feedback -->
+            <div class="card mb-4 border-primary">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="bi bi-chat-left-text"></i> Agregar Feedback</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+
+                        <div class="mb-3">
+                            <label class="form-label">Sección a revisar</label>
+                            <select name="seccion" class="form-select" required>
+                                <option value="">Seleccione...</option>
+                                {% for value, label in seccion_choices %}
+                                <option value="{{ value }}">{{ label }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Estado</label>
+                            <select name="estado" class="form-select" required>
+                                <option value="">Seleccione...</option>
+                                {% for value, label in estado_choices %}
+                                <option value="{{ value }}">{{ label }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Comentario</label>
+                            <textarea name="comentario" class="form-control" rows="4"
+                                      placeholder="Escriba su feedback detallado..." required></textarea>
+                        </div>
+
+                        <div class="form-check mb-3">
+                            <input type="checkbox" class="form-check-input" id="es_critico" name="es_critico">
+                            <label class="form-check-label" for="es_critico">
+                                <strong>Marcar como crítico</strong>
+                                <br><small class="text-muted">Requiere corrección inmediata</small>
+                            </label>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="bi bi-send"></i> Guardar Feedback
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Historial de Feedback -->
+            <div class="card">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0"><i class="bi bi-clock-history"></i> Historial de Feedback</h5>
+                </div>
+                <div class="card-body" style="max-height: 600px; overflow-y: auto;">
+                    {% if todos_feedbacks %}
+                    <div class="timeline">
+                        {% for feedback in todos_feedbacks %}
+                        <div class="timeline-item">
+                            <div class="card feedback-card {{ feedback.estado }} {% if feedback.es_critico %}critico{% endif %}">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                        <span class="seccion-tag bg-light">{{ feedback.get_seccion_display }}</span>
+                                        {% if feedback.estado == 'aprobado' %}
+                                            <span class="badge bg-success">Aprobado</span>
+                                        {% elif feedback.estado == 'revision' %}
+                                            <span class="badge bg-warning">Revisión</span>
+                                        {% else %}
+                                            <span class="badge bg-danger">Rechazado</span>
+                                        {% endif %}
+                                    </div>
+
+                                    {% if feedback.es_critico %}
+                                    <div class="alert alert-warning alert-sm mb-2">
+                                        <i class="bi bi-exclamation-triangle"></i> <strong>Crítico</strong>
+                                    </div>
+                                    {% endif %}
+
+                                    <p class="mb-2">{{ feedback.comentario }}</p>
+
+                                    <small class="text-muted">
+                                        <i class="bi bi-person"></i> {{ feedback.docente.get_full_name|default:feedback.docente.username }}
+                                        <br>
+                                        <i class="bi bi-calendar"></i> {{ feedback.fecha_creacion|date:"d/m/Y H:i" }}
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <p class="text-muted text-center py-4">
+                        <i class="bi bi-inbox fs-1 d-block mb-2"></i>
+                        No hay feedback registrado aún
+                    </p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Auto-focus en el comentario cuando se selecciona una sección
+    const seccionSelect = document.querySelector('[name="seccion"]');
+    const comentarioTextarea = document.querySelector('[name="comentario"]');
+
+    if (seccionSelect) {
+        seccionSelect.addEventListener('change', function() {
+            if (this.value) {
+                comentarioTextarea.focus();
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

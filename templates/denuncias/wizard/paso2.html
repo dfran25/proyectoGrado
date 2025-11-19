@@ -1,0 +1,491 @@
+{% extends "base.html" %}
+{% block title %}Paso 2: Actividad Economica - Sistema Juridico{% endblock %}
+
+{% block extra_css %}
+<style>
+  :root {
+    --brand-orange: #ff6600;
+    --brand-purple: #6357ff;
+  }
+  
+  .wizard-header {
+    background: linear-gradient(135deg, var(--brand-orange) 0%, var(--brand-purple) 100%);
+    color: white;
+    padding: 1.5rem;
+    border-radius: 10px 10px 0 0;
+  }
+  
+  .progress-bar {
+    height: 8px;
+    background: #e9ecef;
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--brand-orange), var(--brand-purple));
+    width: 22.22%; /* 2/9 pasos */
+    transition: width 0.3s ease;
+  }
+  
+  .form-section {
+    background: white;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+  
+  .section-title {
+    color: var(--brand-purple);
+    font-weight: 600;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid #e9ecef;
+  }
+  
+  .activity-option {
+    border: 2px solid #e9ecef;
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+    transition: all 0.3s ease;
+    cursor: pointer;
+  }
+  
+  .activity-option:hover {
+    border-color: var(--brand-purple);
+    background-color: rgba(99, 87, 255, 0.05);
+  }
+  
+  .activity-option.selected {
+    border-color: var(--brand-purple);
+    background-color: rgba(99, 87, 255, 0.1);
+  }
+  
+  .activity-option input[type="radio"] {
+    transform: scale(1.2);
+    margin-right: 0.75rem;
+  }
+  
+  .dependent-fields {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid #e9ecef;
+    display: none;
+  }
+  
+  .dependent-fields.show {
+    display: block;
+  }
+  
+  .form-control:focus {
+    border-color: var(--brand-purple);
+    box-shadow: 0 0 0 0.2rem rgba(99, 87, 255, 0.25);
+  }
+  
+  .btn-primary {
+    background: linear-gradient(135deg, var(--brand-orange) 0%, #ff7519 100%);
+    border: none;
+    padding: 12px 30px;
+    font-weight: 600;
+  }
+  
+  .btn-primary:hover {
+    background: linear-gradient(135deg, #ff7519 0%, var(--brand-orange) 100%);
+    transform: translateY(-1px);
+  }
+  
+  .required-field::after {
+    content: " *";
+    color: #dc3545;
+  }
+  
+  .icon-large {
+    font-size: 2rem;
+    color: var(--brand-purple);
+    margin-bottom: 0.5rem;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+  <div class="row justify-content-center">
+    <div class="col-lg-10">
+      
+      <!-- Header del Wizard -->
+      <div class="card shadow-sm mb-4">
+        <div class="wizard-header">
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <h4 class="mb-1">Nueva Denuncia Juridica</h4>
+              <p class="mb-0">Paso 2 de 9: Actividad Economica Principal</p>
+            </div>
+            <div class="text-end">
+              <small>Progreso</small>
+              <div class="progress-bar mt-1" style="width: 200px;">
+                <div class="progress-fill"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="card-body">
+          <form method="post" id="paso2Form">
+            {% csrf_token %}
+            
+            <!-- Tipo de Actividad Económica -->
+            <div class="form-section">
+              <h5 class="section-title">
+                <i class="bi bi-briefcase-fill me-2"></i>
+                Seleccione su Actividad Economica Principal
+              </h5>
+              
+              <p class="text-muted mb-4">Marque la opcion que mejor describe su situacion laboral actual:</p>
+              
+              <!-- Empleado -->
+              <div class="activity-option" data-type="empleado">
+                <div class="d-flex align-items-start">
+                  <input type="radio" name="activity_type" value="EMPLEADO" id="empleado" required>
+                  <div class="flex-grow-1">
+                    <div class="d-flex align-items-center mb-2">
+                      <i class="bi bi-building icon-large me-3"></i>
+                      <div>
+                        <label for="empleado" class="h6 mb-0">Empleado(a)</label>
+                        <p class="text-muted small mb-0">Trabajo bajo contrato laboral o nomina</p>
+                      </div>
+                    </div>
+                    
+                    <div class="dependent-fields" id="empleado-fields">
+                      <div class="row">
+                        <div class="col-md-6">
+                          <label class="form-label required-field">Nombre del empleador</label>
+                          <input type="text" name="employer_name" class="form-control" 
+                                 placeholder="Empresa o institucion donde trabaja">
+                        </div>
+                        <div class="col-md-6">
+                          <label class="form-label">Tipo de contrato</label>
+                          <select name="contract_type" class="form-select">
+                            <option value="">Seleccione...</option>
+                            <option value="INDEFINIDO">Termino indefinido</option>
+                            <option value="FIJO">Termino fijo</option>
+                            <option value="OBRA">Por obra o labor</option>
+                            <option value="PRESTACION">Prestacion de servicios</option>
+                            <option value="OTRO">Otro</option>
+                          </select>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Pensionado -->
+              <div class="activity-option" data-type="pensionado">
+                <div class="d-flex align-items-start">
+                  <input type="radio" name="activity_type" value="PENSIONADO" id="pensionado" required>
+                  <div class="flex-grow-1">
+                    <div class="d-flex align-items-center mb-2">
+                      <i class="bi bi-person-check icon-large me-3"></i>
+                      <div>
+                        <label for="pensionado" class="h6 mb-0">Pensionado(a)</label>
+                        <p class="text-muted small mb-0">Recibe pension por vejez, invalidez o sobrevivencia</p>
+                      </div>
+                    </div>
+                    
+                    <div class="dependent-fields" id="pensionado-fields">
+                      <div class="row">
+                        <div class="col-md-6">
+                          <label class="form-label required-field">Fondo de pension</label>
+                          <select name="pension_fund" class="form-select">
+                            <option value="">Seleccione...</option>
+                            <option value="COLPENSIONES">Colpensiones</option>
+                            <option value="PORVENIR">Porvenir</option>
+                            <option value="PROTECCION">Proteccion</option>
+                            <option value="COLFONDOS">Colfondos</option>
+                            <option value="OLD_MUTUAL">Old Mutual</option>
+                            <option value="OTRO">Otro</option>
+                          </select>
+                        </div>
+                        <div class="col-md-6">
+                          <label class="form-label">Tipo de pension</label>
+                          <select name="pension_type" class="form-select">
+                            <option value="">Seleccione...</option>
+                            <option value="VEJEZ">Vejez</option>
+                            <option value="INVALIDEZ">Invalidez</option>
+                            <option value="SOBREVIVENCIA">Sobrevivencia</option>
+                            <option value="OTRA">Otra</option>
+                          </select>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Independiente -->
+              <div class="activity-option" data-type="independiente">
+                <div class="d-flex align-items-start">
+                  <input type="radio" name="activity_type" value="INDEPENDIENTE" id="independiente" required>
+                  <div class="flex-grow-1">
+                    <div class="d-flex align-items-center mb-2">
+                      <i class="bi bi-person-workspace icon-large me-3"></i>
+                      <div>
+                        <label for="independiente" class="h6 mb-0">Independiente</label>
+                        <p class="text-muted small mb-0">Trabajo por cuenta propia o tengo negocio propio</p>
+                      </div>
+                    </div>
+                    
+                    <div class="dependent-fields" id="independiente-fields">
+                      <div class="row">
+                        <div class="col-12">
+                          <label class="form-label required-field">Tipo de actividad</label>
+                          <textarea name="independent_activity" class="form-control" rows="3"
+                                    placeholder="Describa detalladamente su actividad economica independiente (comercio, servicios profesionales, agricultura, etc.)"></textarea>
+                        </div>
+                      </div>
+                      <div class="row mt-3">
+                        <div class="col-md-6">
+                          <label class="form-label">Regimen tributario</label>
+                          <select name="tax_regime" class="form-select">
+                            <option value="">Seleccione...</option>
+                            <option value="SIMPLIFICADO">Regimen simplificado</option>
+                            <option value="COMUN">Regimen comun</option>
+                            <option value="MONOTRIBUTO">Monotributo</option>
+                            <option value="NO_DECLARA">No declara renta</option>
+                          </select>
+                        </div>
+                        <div class="col-md-6">
+                          <label class="form-label">Tiene RUT?</label>
+                          <select name="has_rut" class="form-select">
+                            <option value="">Seleccione...</option>
+                            <option value="SI">Si</option>
+                            <option value="NO">No</option>
+                          </select>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Desempleado -->
+              <div class="activity-option" data-type="desempleado">
+                <div class="d-flex align-items-start">
+                  <input type="radio" name="activity_type" value="DESEMPLEADO" id="desempleado" required>
+                  <div class="flex-grow-1">
+                    <div class="d-flex align-items-center mb-2">
+                      <i class="bi bi-person-x icon-large me-3"></i>
+                      <div>
+                        <label for="desempleado" class="h6 mb-0">Desempleado(a)</label>
+                        <p class="text-muted small mb-0">Actualmente sin empleo</p>
+                      </div>
+                    </div>
+                    
+                    <div class="dependent-fields" id="desempleado-fields">
+                      <div class="row">
+                        <div class="col-md-6">
+                          <label class="form-label">Tiempo desempleado</label>
+                          <select name="unemployment_time" class="form-select">
+                            <option value="">Seleccione...</option>
+                            <option value="MENOS_3">Menos de 3 meses</option>
+                            <option value="3_6">3 a 6 meses</option>
+                            <option value="6_12">6 meses a 1 año</option>
+                            <option value="MAS_12">Mas de 1 año</option>
+                          </select>
+                        </div>
+                        <div class="col-md-6">
+                          <label class="form-label">Ultimo empleo</label>
+                          <input type="text" name="last_job" class="form-control" 
+                                 placeholder="Descripcion del ultimo trabajo">
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+            </div>
+
+            <!-- Información Adicional -->
+            <div class="form-section">
+              <h5 class="section-title">
+                <i class="bi bi-info-circle me-2"></i>
+                Informacion Adicional
+              </h5>
+              
+              <div class="row">
+                <div class="col-md-6">
+                  <label class="form-label">Tiempo en la actividad actual</label>
+                  <input type="text" name="time_in_activity" class="form-control" 
+                         placeholder="Ej: 2 años, 6 meses">
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Tiene otras fuentes de ingreso?</label>
+                  <select name="other_income" class="form-select">
+                    <option value="">Seleccione...</option>
+                    <option value="SI">Si</option>
+                    <option value="NO">No</option>
+                  </select>
+                </div>
+              </div>
+              
+              <div class="mt-3">
+                <label class="form-label">Observaciones adicionales</label>
+                <textarea name="additional_notes" class="form-control" rows="3"
+                          placeholder="Cualquier informacion adicional sobre su situacion laboral..."></textarea>
+              </div>
+            </div>
+
+            <!-- Botones de navegación -->
+            <div class="d-flex justify-content-between mt-4">
+              <a href="{% url 'denuncias:wizard_paso' paso='paso1' %}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left me-2"></i>Paso Anterior
+              </a>
+              
+              <button type="submit" class="btn btn-primary">
+                Continuar al Paso 3
+                <i class="bi bi-arrow-right ms-2"></i>
+              </button>
+            </div>
+            
+          </form>
+        </div>
+      </div>
+      
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('paso2Form');
+    const submitBtn = form.querySelector('button[type="submit"]');
+    const radioButtons = form.querySelectorAll('input[type="radio"]');
+    const activityOptions = form.querySelectorAll('.activity-option');
+    
+    // Manejar seleccion de actividad
+    radioButtons.forEach(radio => {
+        radio.addEventListener('change', function() {
+            // Resetear todas las opciones
+            activityOptions.forEach(option => {
+                option.classList.remove('selected');
+                const fields = option.querySelector('.dependent-fields');
+                if (fields) {
+                    fields.classList.remove('show');
+                    // Limpiar campos dependientes
+                    const inputs = fields.querySelectorAll('input, select, textarea');
+                    inputs.forEach(input => {
+                        if (input.type !== 'radio') {
+                            input.value = '';
+                            input.removeAttribute('required');
+                        }
+                    });
+                }
+            });
+            
+            // Activar opcion seleccionada
+            const selectedOption = this.closest('.activity-option');
+            selectedOption.classList.add('selected');
+            
+            const dependentFields = selectedOption.querySelector('.dependent-fields');
+            if (dependentFields) {
+                dependentFields.classList.add('show');
+                
+                // Hacer campos requeridos
+                const requiredInputs = dependentFields.querySelectorAll('[name$="_name"], [name$="_fund"], [name$="_activity"]');
+                requiredInputs.forEach(input => {
+                    if (input.closest('.dependent-fields.show')) {
+                        input.setAttribute('required', 'required');
+                    }
+                });
+            }
+        });
+    });
+    
+    // Click en la opcion completa selecciona el radio
+    activityOptions.forEach(option => {
+        option.addEventListener('click', function(e) {
+            if (e.target.type !== 'radio' && e.target.tagName !== 'INPUT' && e.target.tagName !== 'SELECT' && e.target.tagName !== 'TEXTAREA') {
+                const radio = this.querySelector('input[type="radio"]');
+                radio.checked = true;
+                radio.dispatchEvent(new Event('change'));
+            }
+        });
+    });
+    
+    // Validacion del formulario
+    form.addEventListener('submit', function(e) {
+        const selectedActivity = form.querySelector('input[name="activity_type"]:checked');
+        
+        if (!selectedActivity) {
+            e.preventDefault();
+            alert('Por favor seleccione su actividad economica principal');
+            return;
+        }
+        
+        // Validar campos dependientes requeridos
+        const dependentFields = form.querySelector('.dependent-fields.show');
+        if (dependentFields) {
+            const requiredFields = dependentFields.querySelectorAll('[required]');
+            let hasErrors = false;
+            
+            requiredFields.forEach(field => {
+                if (!field.value.trim()) {
+                    field.classList.add('is-invalid');
+                    hasErrors = true;
+                } else {
+                    field.classList.remove('is-invalid');
+                }
+            });
+            
+            if (hasErrors) {
+                e.preventDefault();
+                alert('Por favor complete todos los campos obligatorios');
+                return;
+            }
+        }
+        
+        // Loading state
+        submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Guardando...';
+        submitBtn.disabled = true;
+    });
+    
+    // Auto-guardar progreso
+    function autoSave() {
+        const formData = new FormData(form);
+        const data = Object.fromEntries(formData.entries());
+        localStorage.setItem('wizard_paso2_temp', JSON.stringify(data));
+    }
+    
+    setInterval(autoSave, 30000);
+    
+    // Cargar datos guardados
+    const savedData = localStorage.getItem('wizard_paso2_temp');
+    if (savedData) {
+        try {
+            const data = JSON.parse(savedData);
+            Object.keys(data).forEach(key => {
+                const field = form.querySelector(`[name="${key}"]`);
+                if (field) {
+                    if (field.type === 'radio') {
+                        if (field.value === data[key]) {
+                            field.checked = true;
+                            field.dispatchEvent(new Event('change'));
+                        }
+                    } else {
+                        field.value = data[key];
+                    }
+                }
+            });
+        } catch (e) {
+            console.log('No hay datos guardados validos');
+        }
+    }
+});
+</script>
+{% endblock %}

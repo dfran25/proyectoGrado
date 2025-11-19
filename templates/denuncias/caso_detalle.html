@@ -1,0 +1,342 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Detalle Caso {{ caso.nua }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'denuncias:dashboard' %}">Dashboard</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'denuncias:casos_lista' %}">Mis Casos</a></li>
+                    <li class="breadcrumb-item active">{{ caso.nua }}</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+
+    <!-- Título y Estado -->
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h2 class="mb-2">📋 Caso {{ caso.nua }}</h2>
+            <p class="text-muted">Área: {{ caso.get_consultation_area_display }}</p>
+        </div>
+        <div class="col-md-4 text-end">
+            {% if caso.status == 'draft' %}
+                <span class="badge bg-secondary fs-5">{{ caso.get_status_display }}</span>
+            {% elif caso.status == 'submitted' %}
+                <span class="badge bg-info fs-5">{{ caso.get_status_display }}</span>
+            {% elif caso.status == 'in_review' %}
+                <span class="badge bg-warning fs-5">{{ caso.get_status_display }}</span>
+            {% elif caso.status == 'reviewed' %}
+                <span class="badge bg-success fs-5">{{ caso.get_status_display }}</span>
+            {% elif caso.status == 'rejected' %}
+                <span class="badge bg-danger fs-5">{{ caso.get_status_display }}</span>
+            {% else %}
+                <span class="badge bg-primary fs-5">{{ caso.get_status_display }}</span>
+            {% endif %}
+            <p class="small text-muted mt-2">
+                Creado: {{ caso.created_at|date:"d/m/Y H:i" }}<br>
+                Actualizado: {{ caso.updated_at|date:"d/m/Y H:i" }}
+            </p>
+        </div>
+    </div>
+
+    <!-- Información del Docente Asignado -->
+    {% if caso.assigned_teacher %}
+    <div class="alert alert-info">
+        <i class="bi bi-person-check"></i>
+        <strong>Docente asignado:</strong> {{ caso.assigned_teacher.get_full_name|default:caso.assigned_teacher.username }}
+    </div>
+    {% endif %}
+
+    <!-- Tabs de Navegación -->
+    <ul class="nav nav-tabs mb-4" id="casoTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="info-personal-tab" data-bs-toggle="tab" data-bs-target="#info-personal" type="button">
+                Información Personal
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="economica-tab" data-bs-toggle="tab" data-bs-target="#economica" type="button">
+                Económica
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="hechos-tab" data-bs-toggle="tab" data-bs-target="#hechos" type="button">
+                Hechos
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="solucion-tab" data-bs-toggle="tab" data-bs-target="#solucion" type="button">
+                Solución
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="anexos-tab" data-bs-toggle="tab" data-bs-target="#anexos" type="button">
+                Anexos
+            </button>
+        </li>
+    </ul>
+
+    <!-- Contenido de Tabs -->
+    <div class="tab-content" id="casoTabsContent">
+
+        <!-- Tab: Información Personal -->
+        <div class="tab-pane fade show active" id="info-personal">
+            {% if caso.usuario_asesorado %}
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Usuario Asesorado</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>Nombre completo:</strong> {{ caso.usuario_asesorado.full_name }}</p>
+                            <p><strong>Documento:</strong> {{ caso.usuario_asesorado.get_document_type_display }} - {{ caso.usuario_asesorado.document_number }}</p>
+                            <p><strong>Dirección:</strong> {{ caso.usuario_asesorado.address }}</p>
+                            <p><strong>Barrio:</strong> {{ caso.usuario_asesorado.neighborhood }}</p>
+                            <p><strong>Ciudad:</strong> {{ caso.usuario_asesorado.city }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Teléfono:</strong> {{ caso.usuario_asesorado.phone }}</p>
+                            <p><strong>WhatsApp:</strong> {{ caso.usuario_asesorado.whatsapp }}</p>
+                            <p><strong>Email:</strong> {{ caso.usuario_asesorado.email }}</p>
+                            <p><strong>Estado civil:</strong> {{ caso.usuario_asesorado.get_civil_status_display }}</p>
+                            <p><strong>Ocupación:</strong> {{ caso.usuario_asesorado.occupation }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            <div class="alert alert-warning">No hay información personal registrada</div>
+            {% endif %}
+        </div>
+
+        <!-- Tab: Económica -->
+        <div class="tab-pane fade" id="economica">
+            <div class="row">
+                <!-- Actividad Económica -->
+                {% if caso.actividad_economica %}
+                <div class="col-md-12 mb-3">
+                    <div class="card">
+                        <div class="card-header bg-success text-white">
+                            <h5 class="mb-0">Actividad Económica</h5>
+                        </div>
+                        <div class="card-body">
+                            <p><strong>Tipo:</strong> {{ caso.actividad_economica.get_activity_type_display }}</p>
+                            {% if caso.actividad_economica.employer_name %}
+                            <p><strong>Empleador:</strong> {{ caso.actividad_economica.employer_name }}</p>
+                            {% endif %}
+                            {% if caso.actividad_economica.independent_activity %}
+                            <p><strong>Actividad independiente:</strong> {{ caso.actividad_economica.independent_activity }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Información Económica -->
+                {% if caso.informacion_economica %}
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header bg-info text-white">
+                            <h5 class="mb-0">Ingresos</h5>
+                        </div>
+                        <div class="card-body">
+                            <p>Salariales: ${{ caso.informacion_economica.ingresos_salariales|floatformat:0 }}</p>
+                            <p>Honorarios: ${{ caso.informacion_economica.ingresos_honorarios|floatformat:0 }}</p>
+                            <p>Arrendamientos: ${{ caso.informacion_economica.ingresos_arrendamientos|floatformat:0 }}</p>
+                            <p>Pensiones: ${{ caso.informacion_economica.ingresos_pensiones|floatformat:0 }}</p>
+                            <p>Otros: ${{ caso.informacion_economica.otros_ingresos|floatformat:0 }}</p>
+                            <hr>
+                            <p><strong>Total Ingresos: ${{ caso.informacion_economica.ingresos_salariales|add:caso.informacion_economica.ingresos_honorarios|add:caso.informacion_economica.ingresos_arrendamientos|add:caso.informacion_economica.ingresos_pensiones|add:caso.informacion_economica.otros_ingresos|floatformat:0 }}</strong></p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header bg-warning text-white">
+                            <h5 class="mb-0">Egresos</h5>
+                        </div>
+                        <div class="card-body">
+                            <p>Alimentación: ${{ caso.informacion_economica.gastos_alimentacion|floatformat:0 }}</p>
+                            <p>Transporte: ${{ caso.informacion_economica.gastos_transporte|floatformat:0 }}</p>
+                            <p>Servicios públicos: ${{ caso.informacion_economica.gastos_servicios_publicos|floatformat:0 }}</p>
+                            <p>Arriendo: ${{ caso.informacion_economica.gastos_arriendo|floatformat:0 }}</p>
+                            <p>Otros: ${{ caso.informacion_economica.otros_egresos|floatformat:0 }}</p>
+                            <hr>
+                            <p><strong>Total Egresos: ${{ caso.informacion_economica.gastos_alimentacion|add:caso.informacion_economica.gastos_transporte|add:caso.informacion_economica.gastos_servicios_publicos|add:caso.informacion_economica.gastos_arriendo|add:caso.informacion_economica.otros_egresos|floatformat:0 }}</strong></p>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Tab: Hechos -->
+        <div class="tab-pane fade" id="hechos">
+            {% if caso.relacion_hechos %}
+            <div class="card">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="mb-0">Relación de los Hechos</h5>
+                </div>
+                <div class="card-body">
+                    <p style="white-space: pre-wrap;">{{ caso.relacion_hechos.descripcion_hechos }}</p>
+                </div>
+            </div>
+            {% else %}
+            <div class="alert alert-warning">No hay relación de hechos registrada</div>
+            {% endif %}
+        </div>
+
+        <!-- Tab: Solución -->
+        <div class="tab-pane fade" id="solucion">
+            {% if caso.solucion %}
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Solución Propuesta</h5>
+                </div>
+                <div class="card-body">
+                    <p style="white-space: pre-wrap;">{{ caso.solucion.solucion_propuesta }}</p>
+
+                    <hr>
+
+                    <div class="row mt-3">
+                        <div class="col-md-6">
+                            <p><strong>Susceptible de conciliación:</strong> {{ caso.solucion.susceptible_conciliacion|yesno:"Sí,No" }}</p>
+                            {% if caso.solucion.fecha_limite_entrega %}
+                            <p><strong>Fecha límite entrega:</strong> {{ caso.solucion.fecha_limite_entrega|date:"d/m/Y" }}</p>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            {% if caso.solucion.estudiante_nombre %}
+                            <p><strong>Estudiante:</strong> {{ caso.solucion.estudiante_nombre }}</p>
+                            {% endif %}
+                            {% if caso.solucion.estudiante_codigo %}
+                            <p><strong>Código:</strong> {{ caso.solucion.estudiante_codigo }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            <div class="alert alert-warning">No hay solución registrada</div>
+            {% endif %}
+        </div>
+
+        <!-- Tab: Anexos -->
+        <div class="tab-pane fade" id="anexos">
+            {% if caso.anexos.all %}
+            <div class="card">
+                <div class="card-header bg-secondary text-white">
+                    <h5 class="mb-0">Anexos Adjuntos</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Nombre</th>
+                                    <th>Folios</th>
+                                    <th>Descripción</th>
+                                    <th>Fecha</th>
+                                    <th>Acción</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for anexo in caso.anexos.all %}
+                                <tr>
+                                    <td>{{ anexo.nombre_anexo }}</td>
+                                    <td>{{ anexo.numero_folios }}</td>
+                                    <td>{{ anexo.descripcion|truncatewords:10 }}</td>
+                                    <td>{{ anexo.fecha_subida|date:"d/m/Y" }}</td>
+                                    <td>
+                                        <a href="{{ anexo.archivo.url }}" target="_blank" class="btn btn-sm btn-primary">
+                                            <i class="bi bi-download"></i> Descargar
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            <div class="alert alert-warning">No hay anexos adjuntos</div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Feedback del Docente -->
+    {% if feedbacks %}
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card border-primary">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="bi bi-chat-left-text"></i> Feedback del Docente
+                        {% if tiene_feedback_critico %}
+                        <span class="badge bg-danger ms-2">
+                            <i class="bi bi-exclamation-triangle"></i> Atención Requerida
+                        </span>
+                        {% endif %}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% for feedback in feedbacks %}
+                    <div class="card mb-3 {% if feedback.es_critico %}border-danger{% endif %}">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <div>
+                                    <span class="badge bg-light text-dark">{{ feedback.get_seccion_display }}</span>
+                                    {% if feedback.es_critico %}
+                                    <span class="badge bg-danger ms-2">
+                                        <i class="bi bi-exclamation-triangle"></i> Crítico
+                                    </span>
+                                    {% endif %}
+                                </div>
+                                {% if feedback.estado == 'aprobado' %}
+                                    <span class="badge bg-success">Aprobado</span>
+                                {% elif feedback.estado == 'revision' %}
+                                    <span class="badge bg-warning">Requiere Revisión</span>
+                                {% else %}
+                                    <span class="badge bg-danger">Rechazado</span>
+                                {% endif %}
+                            </div>
+
+                            <p class="mb-2">{{ feedback.comentario }}</p>
+
+                            <div class="text-muted small">
+                                <i class="bi bi-person"></i> {{ feedback.docente.get_full_name|default:feedback.docente.username }} |
+                                <i class="bi bi-calendar"></i> {{ feedback.fecha_creacion|date:"d/m/Y H:i" }}
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Botones de Acción -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <a href="{% url 'denuncias:casos_lista' %}" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> Volver a Mis Casos
+            </a>
+            {% if caso.status == 'draft' or tiene_feedback_critico %}
+            <a href="{% url 'denuncias:wizard_paso' paso='paso1' %}" class="btn btn-primary">
+                <i class="bi bi-pencil"></i> {% if tiene_feedback_critico %}Corregir según Feedback{% else %}Continuar Editando{% endif %}
+            </a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

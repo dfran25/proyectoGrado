@@ -1,0 +1,491 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard - Sistema Juridico{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h2><i class="bi bi-house-door"></i> Dashboard</h2>
+                <p class="text-muted">Bienvenido, {{ user.get_full_name|default:user.username }}</p>
+            </div>
+            <a href="{% url 'denuncias:wizard_inicio' %}" class="btn btn-primary btn-lg">
+                <i class="bi bi-plus-circle"></i> Nueva Denuncia
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Statistics Cards -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card bg-primary text-white card-hover">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-title">Total Casos</h6>
+                        <h3 class="mb-0">{{ stats.total_casos|default:0 }}</h3>
+                    </div>
+                    <i class="bi bi-folder fs-1 opacity-75"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card bg-success text-white card-hover">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-title">Completados</h6>
+                        <h3 class="mb-0">{{ stats.casos_completados|default:0 }}</h3>
+                    </div>
+                    <i class="bi bi-check-circle fs-1 opacity-75"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card bg-warning text-white card-hover">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-title">En Progreso</h6>
+                        <h3 class="mb-0">{{ stats.casos_en_progreso|default:0 }}</h3>
+                    </div>
+                    <i class="bi bi-clock fs-1 opacity-75"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card bg-info text-white card-hover">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-title">Borradores</h6>
+                        <h3 class="mb-0">{{ stats.casos_borradores|default:0 }}</h3>
+                    </div>
+                    <i class="bi bi-file-earmark fs-1 opacity-75"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Reemplaza la sección de Acciones Rápidas en tu dashboard -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="bi bi-lightning"></i> Acciones Rápidas</h5>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <a href="{% url 'denuncias:wizard_inicio' %}" class="card text-decoration-none card-hover h-100">
+                            <div class="card-body text-center">
+                                <i class="bi bi-plus-circle fs-1 text-primary mb-3"></i>
+                                <h6>Nueva Denuncia</h6>
+                                <p class="text-muted small">Inicia el proceso de una nueva denuncia jurídica</p>
+                            </div>
+                        </a>
+                    </div>
+                    
+                    <div class="col-md-4">
+                        <a href="{% url 'denuncias:casos_lista' %}" class="card text-decoration-none card-hover h-100">
+                            <div class="card-body text-center">
+                                <i class="bi bi-list-task fs-1 text-success mb-3"></i>
+                                <h6>Ver Mis Casos</h6>
+                                <p class="text-muted small">Revisa el estado de tus denuncias</p>
+                            </div>
+                        </a>
+                    </div>
+                    
+                    <div class="col-md-4">
+                        <div class="dropdown h-100">
+                            <div class="card card-hover h-100 dropdown-card" data-bs-toggle="dropdown" aria-expanded="false">
+                                <div class="card-body text-center d-flex flex-column justify-content-center">
+                                    <i class="bi bi-file-earmark-pdf fs-1 text-info mb-3"></i>
+                                    <h6 class="mb-2">
+                                        Generar Reportes 
+                                        <i class="bi bi-chevron-down ms-1 dropdown-arrow"></i>
+                                    </h6>
+                                    <p class="text-muted small mb-0">Exporta información de tus casos</p>
+                                </div>
+                            </div>
+                            <ul class="dropdown-menu dropdown-menu-custom shadow-lg">
+                                <li>
+                                    <a class="dropdown-item dropdown-item-custom" href="{% url 'denuncias:reporte_casos_pdf' %}">
+                                        <div class="d-flex align-items-center">
+                                            <div class="dropdown-icon-wrapper me-3">
+                                                <i class="bi bi-file-earmark-pdf text-danger"></i>
+                                            </div>
+                                            <div>
+                                                <div class="fw-semibold">Descargar PDF</div>
+                                                <small class="text-muted">Reporte en formato PDF</small>
+                                            </div>
+                                        </div>
+                                    </a>
+                                </li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <a class="dropdown-item dropdown-item-custom" href="{% url 'denuncias:reporte_casos_excel' %}">
+                                        <div class="d-flex align-items-center">
+                                            <div class="dropdown-icon-wrapper me-3">
+                                                <i class="bi bi-file-earmark-excel text-success"></i>
+                                            </div>
+                                            <div>
+                                                <div class="fw-semibold">Descargar Excel</div>
+                                                <small class="text-muted">Reporte en formato Excel</small>
+                                            </div>
+                                        </div>
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Estilos mejorados para el dropdown */
+.dropdown-card {
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 1px solid #e9ecef;
+}
+
+.dropdown-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    border-color: #f97316;
+}
+
+.dropdown-card[aria-expanded="true"] {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+    border-color: #f97316;
+}
+
+.dropdown-card[aria-expanded="true"] .dropdown-arrow {
+    transform: rotate(180deg);
+}
+
+.dropdown-arrow {
+    transition: transform 0.3s ease;
+    font-size: 0.875rem;
+}
+
+.dropdown-menu-custom {
+    border: none;
+    border-radius: 10px;
+    padding: 0.5rem 0;
+    min-width: 280px;
+    margin-top: 0.5rem;
+    border: 1px solid rgba(0,0,0,0.1);
+}
+
+.dropdown-item-custom {
+    padding: 0.75rem 1.25rem;
+    transition: all 0.3s ease;
+    border: none;
+}
+
+.dropdown-item-custom:hover {
+    background: linear-gradient(135deg, rgba(249, 115, 22, 0.1), rgba(124, 58, 237, 0.1));
+    transform: translateX(5px);
+}
+
+.dropdown-icon-wrapper {
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    background: #f8f9fa;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+}
+
+.dropdown-item-custom:hover .dropdown-icon-wrapper {
+    background: white;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+/* Animación para mostrar el dropdown */
+.dropdown-menu-custom {
+    opacity: 0;
+    transform: translateY(-10px);
+    transition: all 0.3s ease;
+    pointer-events: none;
+}
+
+.dropdown-menu-custom.show {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+}
+
+/* Efecto hover en las tarjetas normales */
+.card-hover {
+    transition: all 0.3s ease;
+}
+
+.card-hover:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .dropdown-menu-custom {
+        min-width: 250px;
+        margin-top: 0.25rem;
+    }
+    
+    .dropdown-item-custom {
+        padding: 0.5rem 1rem;
+    }
+    
+    .dropdown-icon-wrapper {
+        width: 35px;
+        height: 35px;
+        font-size: 1.1rem;
+    }
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Mejorar la animación del dropdown
+    const dropdownCard = document.querySelector('.dropdown-card');
+    const dropdownMenu = document.querySelector('.dropdown-menu-custom');
+    
+    if (dropdownCard && dropdownMenu) {
+        dropdownCard.addEventListener('click', function() {
+            // Añadir clase de animación
+            setTimeout(() => {
+                dropdownMenu.classList.add('show');
+            }, 50);
+        });
+        
+        // Cerrar dropdown al hacer click fuera
+        document.addEventListener('click', function(e) {
+            if (!dropdownCard.contains(e.target)) {
+                dropdownMenu.classList.remove('show');
+            }
+        });
+    }
+    
+    // Animación de entrada para las tarjetas
+    const cards = document.querySelectorAll('.card-hover');
+    cards.forEach((card, index) => {
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(20px)';
+        
+        setTimeout(() => {
+            card.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+            card.style.opacity = '1';
+            card.style.transform = 'translateY(0)';
+        }, index * 150);
+    });
+});
+</script>
+
+<!-- Recent Cases -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5><i class="bi bi-clock-history"></i> Casos Recientes</h5>
+                <a href="{% url 'denuncias:casos_lista' %}" class="btn btn-outline-primary btn-sm">Ver Todos</a>
+            </div>
+            <div class="card-body">
+                {% if casos_recientes %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>NUA</th>
+                                    <th>Área</th>
+                                    <th>Estado</th>
+                                    <th>Fecha</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for caso in casos_recientes %}
+                                <tr>
+                                    <td>
+                                        <strong>{{ caso.nua }}</strong>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-light text-dark">
+                                            {{ caso.get_consultation_area_display }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        {% if caso.status == 'draft' %}
+                                            <span class="badge bg-secondary">{{ caso.get_status_display }}</span>
+                                        {% elif caso.status == 'submitted' %}
+                                            <span class="badge bg-info">{{ caso.get_status_display }}</span>
+                                        {% elif caso.status == 'in_review' %}
+                                            <span class="badge bg-warning">{{ caso.get_status_display }}</span>
+                                        {% elif caso.status == 'reviewed' %}
+                                            <span class="badge bg-success">{{ caso.get_status_display }}</span>
+                                        {% elif caso.status == 'rejected' %}
+                                            <span class="badge bg-danger">{{ caso.get_status_display }}</span>
+                                        {% else %}
+                                            <span class="badge bg-primary">{{ caso.get_status_display }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <small class="text-muted">{{ caso.created_at|date:"d/m/Y H:i" }}</small>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm">
+                                            <a href="{% url 'denuncias:caso_detalle' caso.id %}" class="btn btn-outline-primary" title="Ver detalle">
+                                                <i class="bi bi-eye"></i>
+                                            </a>
+                                            {% if caso.status == 'draft' %}
+                                                <a href="{% url 'denuncias:wizard_paso' paso='paso1' %}" class="btn btn-outline-warning" title="Continuar">
+                                                    <i class="bi bi-pencil"></i>
+                                                </a>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-5">
+                        <i class="bi bi-folder-x fs-1 text-muted mb-3"></i>
+                        <h6 class="text-muted">No tienes casos registrados</h6>
+                        <p class="text-muted small">Comienza creando tu primera denuncia</p>
+                        <a href="{% url 'denuncias:wizard_inicio' %}" class="btn btn-primary">
+                            <i class="bi bi-plus-circle"></i> Nueva Denuncia
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Help Section -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card bg-light">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <h6><i class="bi bi-question-circle"></i> ¿Necesitas ayuda?</h6>
+                        <p class="mb-0 text-muted">
+                            Si tienes dudas sobre el proceso de denuncia o necesitas asistencia, 
+                            consulta nuestra guía paso a paso.
+                        </p>
+                    </div>
+                    <div class="col-md-4 text-end">
+                        <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#helpModal">
+                            <i class="bi bi-info-circle"></i> Ver Guía
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Help Modal -->
+<div class="modal fade" id="helpModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-info-circle"></i> Guía del Sistema</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="accordion" id="helpAccordion">
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne">
+                                ¿Cómo crear una nueva denuncia?
+                            </button>
+                        </h2>
+                        <div id="collapseOne" class="accordion-collapse collapse show" data-bs-parent="#helpAccordion">
+                            <div class="accordion-body">
+                                <ol>
+                                    <li>Haz clic en "Nueva Denuncia"</li>
+                                    <li>Completa los 9 pasos del formulario</li>
+                                    <li>Revisa la información en el resumen final</li>
+                                    <li>Envía la denuncia</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo">
+                                ¿Puedo guardar un borrador?
+                            </button>
+                        </h2>
+                        <div id="collapseTwo" class="accordion-collapse collapse" data-bs-parent="#helpAccordion">
+                            <div class="accordion-body">
+                                Sí, el sistema guarda automaticamente tu progreso. Puedes continuar en cualquier momento desde donde lo dejaste.
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree">
+                                ¿Qué documentos necesito?
+                            </button>
+                        </h2>
+                        <div id="collapseThree" class="accordion-collapse collapse" data-bs-parent="#helpAccordion">
+                            <div class="accordion-body">
+                                Dependiendo del tipo de denuncia, podrías necesitar: identificación, pruebas documentales, testimonios, etc. El sistema te guiará en cada paso.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Add some interactivity if needed
+    document.addEventListener('DOMContentLoaded', function() {
+        // Animate stats cards on load
+        const cards = document.querySelectorAll('.card-hover');
+        cards.forEach((card, index) => {
+            setTimeout(() => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(20px)';
+                card.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+                
+                setTimeout(() => {
+                    card.style.opacity = '1';
+                    card.style.transform = 'translateY(0)';
+                }, 100);
+            }, index * 100);
+        });
+    });
+</script>
+{% endblock %}

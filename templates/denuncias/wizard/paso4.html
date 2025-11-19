@@ -1,0 +1,428 @@
+{% extends "base.html" %}
+{% block title %}Paso 4: Informacion Economica - Sistema Juridico{% endblock %}
+
+{% block extra_css %}
+<style>
+  :root {
+    --brand-orange: #ff6600;
+    --brand-purple: #6357ff;
+  }
+  
+  .wizard-header {
+    background: linear-gradient(135deg, var(--brand-orange) 0%, var(--brand-purple) 100%);
+    color: white;
+    padding: 1.5rem;
+    border-radius: 10px 10px 0 0;
+  }
+  
+  .progress-bar {
+    height: 8px;
+    background: #e9ecef;
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--brand-orange), var(--brand-purple));
+    width: 44.44%; /* 4/9 pasos */
+    transition: width 0.3s ease;
+  }
+  
+  .form-section {
+    background: white;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+  
+  .section-title {
+    color: var(--brand-purple);
+    font-weight: 600;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid #e9ecef;
+  }
+  
+  .income-section {
+    background: linear-gradient(135deg, rgba(40, 167, 69, 0.1), rgba(40, 167, 69, 0.05));
+    border-left: 4px solid #28a745;
+  }
+  
+  .expense-section {
+    background: linear-gradient(135deg, rgba(220, 53, 69, 0.1), rgba(220, 53, 69, 0.05));
+    border-left: 4px solid #dc3545;
+  }
+  
+  .total-section {
+    background: linear-gradient(135deg, rgba(99, 87, 255, 0.1), rgba(99, 87, 255, 0.05));
+    border-left: 4px solid var(--brand-purple);
+  }
+  
+  .input-group-text {
+    background-color: #f8f9fa;
+    border-color: #e9ecef;
+    font-weight: 600;
+  }
+  
+  .currency-input {
+    text-align: right;
+  }
+  
+  .btn-primary {
+    background: linear-gradient(135deg, var(--brand-orange) 0%, #ff7519 100%);
+    border: none;
+    padding: 12px 30px;
+    font-weight: 600;
+  }
+  
+  .btn-primary:hover {
+    background: linear-gradient(135deg, #ff7519 0%, var(--brand-orange) 100%);
+    transform: translateY(-1px);
+  }
+  
+  .form-control:focus {
+    border-color: var(--brand-purple);
+    box-shadow: 0 0 0 0.2rem rgba(99, 87, 255, 0.25);
+  }
+  
+  .total-display {
+    font-size: 1.2rem;
+    font-weight: 700;
+    padding: 1rem;
+    border-radius: 8px;
+    margin-top: 1rem;
+  }
+  
+  .positive {
+    background-color: rgba(40, 167, 69, 0.1);
+    color: #28a745;
+  }
+  
+  .negative {
+    background-color: rgba(220, 53, 69, 0.1);
+    color: #dc3545;
+  }
+  
+  .form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1rem;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+  <div class="row justify-content-center">
+    <div class="col-lg-10">
+      
+      <!-- Header del Wizard -->
+      <div class="card shadow-sm mb-4">
+        <div class="wizard-header">
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <h4 class="mb-1">Nueva Denuncia Juridica</h4>
+              <p class="mb-0">Paso 4 de 9: Informacion Economica</p>
+            </div>
+            <div class="text-end">
+              <small>Progreso</small>
+              <div class="progress-bar mt-1" style="width: 200px;">
+                <div class="progress-fill"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="card-body">
+          <form method="post" id="paso4Form">
+            {% csrf_token %}
+            
+            <!-- ACTIVOS (Ingresos) -->
+            <div class="form-section income-section">
+              <h5 class="section-title">
+                <i class="bi bi-arrow-up-circle me-2"></i>
+                ACTIVOS - Ingresos Mensuales
+              </h5>
+              
+              <div class="form-grid">
+                <div>
+                  <label class="form-label">Ingresos salariales</label>
+                  <div class="input-group">
+                    <span class="input-group-text">$</span>
+                    <input type="number" name="ingresos_salariales" class="form-control currency-input" 
+                           placeholder="0" min="0" step="1000" onchange="calculateTotals()">
+                  </div>
+                </div>
+                
+                <div>
+                  <label class="form-label">Honorarios</label>
+                  <div class="input-group">
+                    <span class="input-group-text">$</span>
+                    <input type="number" name="ingresos_honorarios" class="form-control currency-input" 
+                           placeholder="0" min="0" step="1000" onchange="calculateTotals()">
+                  </div>
+                </div>
+                
+                <div>
+                  <label class="form-label">Arrendamientos</label>
+                  <div class="input-group">
+                    <span class="input-group-text">$</span>
+                    <input type="number" name="ingresos_arrendamientos" class="form-control currency-input" 
+                           placeholder="0" min="0" step="1000" onchange="calculateTotals()">
+                  </div>
+                </div>
+                
+                <div>
+                  <label class="form-label">Pensiones</label>
+                  <div class="input-group">
+                    <span class="input-group-text">$</span>
+                    <input type="number" name="ingresos_pensiones" class="form-control currency-input" 
+                           placeholder="0" min="0" step="1000" onchange="calculateTotals()">
+                  </div>
+                </div>
+              </div>
+              
+              <div class="mt-3">
+                <label class="form-label">Otros ingresos</label>
+                <div class="input-group mb-2">
+                  <span class="input-group-text">$</span>
+                  <input type="number" name="otros_ingresos" class="form-control currency-input" 
+                         placeholder="0" min="0" step="1000" onchange="calculateTotals()">
+                </div>
+                <textarea name="descripcion_otros_ingresos" class="form-control" rows="2"
+                          placeholder="Describa otros ingresos (comercio, ventas, etc.)"></textarea>
+              </div>
+              
+              <div class="total-display positive" id="total-ingresos">
+                Total ingresos: $0
+              </div>
+            </div>
+
+            <!-- PASIVOS (Gastos) -->
+            <div class="form-section expense-section">
+              <h5 class="section-title">
+                <i class="bi bi-arrow-down-circle me-2"></i>
+                PASIVOS - Gastos Mensuales
+              </h5>
+              
+              <div class="form-grid">
+                <div>
+                  <label class="form-label">Alimentacion</label>
+                  <div class="input-group">
+                    <span class="input-group-text">$</span>
+                    <input type="number" name="gastos_alimentacion" class="form-control currency-input" 
+                           placeholder="0" min="0" step="1000" onchange="calculateTotals()">
+                  </div>
+                </div>
+                
+                <div>
+                  <label class="form-label">Transporte</label>
+                  <div class="input-group">
+                    <span class="input-group-text">$</span>
+                    <input type="number" name="gastos_transporte" class="form-control currency-input" 
+                           placeholder="0" min="0" step="1000" onchange="calculateTotals()">
+                  </div>
+                </div>
+                
+                <div>
+                  <label class="form-label">Servicios publicos</label>
+                  <div class="input-group">
+                    <span class="input-group-text">$</span>
+                    <input type="number" name="gastos_servicios_publicos" class="form-control currency-input" 
+                           placeholder="0" min="0" step="1000" onchange="calculateTotals()">
+                  </div>
+                </div>
+                
+                <div>
+                  <label class="form-label">Arriendo</label>
+                  <div class="input-group">
+                    <span class="input-group-text">$</span>
+                    <input type="number" name="gastos_arriendo" class="form-control currency-input" 
+                           placeholder="0" min="0" step="1000" onchange="calculateTotals()">
+                  </div>
+                </div>
+              </div>
+              
+              <div class="mt-3">
+                <label class="form-label">Otros egresos</label>
+                <div class="input-group mb-2">
+                  <span class="input-group-text">$</span>
+                  <input type="number" name="otros_egresos" class="form-control currency-input" 
+                         placeholder="0" min="0" step="1000" onchange="calculateTotals()">
+                </div>
+                <textarea name="descripcion_otros_egresos" class="form-control" rows="2"
+                          placeholder="Describa otros gastos (creditos, seguros, etc.)"></textarea>
+              </div>
+              
+              <div class="total-display negative" id="total-gastos" style="background-color: rgba(220, 53, 69, 0.1); color: #dc3545;">
+                Total gastos: $0
+              </div>
+            </div>
+
+            <!-- TOTALES -->
+            <div class="form-section total-section">
+              <h5 class="section-title">
+                <i class="bi bi-calculator me-2"></i>
+                RESUMEN ECONOMICO
+              </h5>
+              
+              <div class="row">
+                <div class="col-md-4">
+                  <div class="total-display positive">
+                    <strong>Total Ingresos</strong><br>
+                    <span id="resumen-ingresos">$0</span>
+                  </div>
+                </div>
+                <div class="col-md-4">
+                  <div class="total-display negative">
+                    <strong>Total Gastos</strong><br>
+                    <span id="resumen-gastos">$0</span>
+                  </div>
+                </div>
+                <div class="col-md-4">
+                  <div class="total-display" id="saldo-final">
+                    <strong>Saldo Final</strong><br>
+                    <span id="resumen-saldo">$0</span>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="mt-3">
+                <label class="form-label">Observaciones sobre su situacion economica</label>
+                <textarea name="observaciones_economicas" class="form-control" rows="3"
+                          placeholder="Informacion adicional sobre su situacion economica..."></textarea>
+              </div>
+            </div>
+
+            <!-- Botones de navegación -->
+            <div class="d-flex justify-content-between mt-4">
+              <a href="{% url 'denuncias:wizard_paso' paso='paso3' %}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left me-2"></i>Paso Anterior
+              </a>
+              
+              <button type="submit" class="btn btn-primary">
+                Continuar al Paso 5
+                <i class="bi bi-arrow-right ms-2"></i>
+              </button>
+            </div>
+            
+          </form>
+        </div>
+      </div>
+      
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function calculateTotals() {
+    // Obtener todos los ingresos
+    const ingresos = [
+        'ingresos_salariales',
+        'ingresos_honorarios', 
+        'ingresos_arrendamientos',
+        'ingresos_pensiones',
+        'otros_ingresos'
+    ];
+    
+    const gastos = [
+        'gastos_alimentacion',
+        'gastos_transporte',
+        'gastos_servicios_publicos', 
+        'gastos_arriendo',
+        'otros_egresos'
+    ];
+    
+    let totalIngresos = 0;
+    let totalGastos = 0;
+    
+    // Calcular total ingresos
+    ingresos.forEach(ingreso => {
+        const valor = parseFloat(document.querySelector(`[name="${ingreso}"]`).value) || 0;
+        totalIngresos += valor;
+    });
+    
+    // Calcular total gastos
+    gastos.forEach(gasto => {
+        const valor = parseFloat(document.querySelector(`[name="${gasto}"]`).value) || 0;
+        totalGastos += valor;
+    });
+    
+    const saldoFinal = totalIngresos - totalGastos;
+    
+    // Actualizar displays
+    document.getElementById('total-ingresos').textContent = `Total ingresos: $${totalIngresos.toLocaleString()}`;
+    document.getElementById('total-gastos').textContent = `Total gastos: $${totalGastos.toLocaleString()}`;
+    
+    document.getElementById('resumen-ingresos').textContent = `$${totalIngresos.toLocaleString()}`;
+    document.getElementById('resumen-gastos').textContent = `$${totalGastos.toLocaleString()}`;
+    document.getElementById('resumen-saldo').textContent = `$${saldoFinal.toLocaleString()}`;
+    
+    // Cambiar color del saldo final
+    const saldoElement = document.getElementById('saldo-final');
+    if (saldoFinal > 0) {
+        saldoElement.className = 'total-display positive';
+    } else if (saldoFinal < 0) {
+        saldoElement.className = 'total-display negative';
+    } else {
+        saldoElement.className = 'total-display';
+        saldoElement.style.backgroundColor = 'rgba(108, 117, 125, 0.1)';
+        saldoElement.style.color = '#6c757d';
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('paso4Form');
+    const submitBtn = form.querySelector('button[type="submit"]');
+    
+    // Calcular totales inicial
+    calculateTotals();
+    
+    // Formatear números al escribir
+    const numberInputs = form.querySelectorAll('input[type="number"]');
+    numberInputs.forEach(input => {
+        input.addEventListener('blur', function() {
+            if (this.value) {
+                this.value = parseFloat(this.value).toString();
+            }
+        });
+    });
+    
+    // Validacion del formulario
+    form.addEventListener('submit', function(e) {
+        submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Guardando...';
+        submitBtn.disabled = true;
+    });
+    
+    // Auto-guardar progreso
+    function autoSave() {
+        const formData = new FormData(form);
+        const data = Object.fromEntries(formData.entries());
+        localStorage.setItem('wizard_paso4_temp', JSON.stringify(data));
+    }
+    
+    setInterval(autoSave, 30000);
+    
+    // Cargar datos guardados
+    const savedData = localStorage.getItem('wizard_paso4_temp');
+    if (savedData) {
+        try {
+            const data = JSON.parse(savedData);
+            Object.keys(data).forEach(key => {
+                const field = form.querySelector(`[name="${key}"]`);
+                if (field && data[key]) {
+                    field.value = data[key];
+                }
+            });
+            calculateTotals();
+        } catch (e) {
+            console.log('No hay datos guardados validos');
+        }
+    }
+});
+</script>
+{% endblock %}

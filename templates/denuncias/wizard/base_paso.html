@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-4">
+  <h3>{{ titulo }}</h3>
+
+  <form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    {{ form.as_p }}
+
+    <div class="d-flex justify-content-between">
+      {% if paso_anterior %}
+        <a href="{% url 'denuncias:wizard_paso' paso_anterior %}" class="btn btn-secondary">Anterior</a>
+      {% endif %}
+      <button type="submit" class="btn btn-primary">
+        {{ paso_siguiente|default:'Siguiente'|yesno:'Siguiente,Finalizar' }}
+      </button>
+    </div>
+  </form>
+</div>
+{% endblock %}

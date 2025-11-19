@@ -1,0 +1,404 @@
+{% extends "base.html" %}
+{% block title %}Paso 3: Informacion Patrimonial - Sistema Juridico{% endblock %}
+
+{% block extra_css %}
+<style>
+  :root {
+    --brand-orange: #ff6600;
+    --brand-purple: #6357ff;
+  }
+  
+  .wizard-header {
+    background: linear-gradient(135deg, var(--brand-orange) 0%, var(--brand-purple) 100%);
+    color: white;
+    padding: 1.5rem;
+    border-radius: 10px 10px 0 0;
+  }
+  
+  .progress-bar {
+    height: 8px;
+    background: #e9ecef;
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--brand-orange), var(--brand-purple));
+    width: 33.33%; /* 3/9 pasos */
+    transition: width 0.3s ease;
+  }
+  
+  .form-section {
+    background: white;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+  
+  .section-title {
+    color: var(--brand-purple);
+    font-weight: 600;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid #e9ecef;
+  }
+  
+  .asset-item {
+    border: 2px solid #e9ecef;
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+    transition: all 0.3s ease;
+  }
+  
+  .asset-item:hover {
+    border-color: var(--brand-purple);
+    background-color: rgba(99, 87, 255, 0.05);
+  }
+  
+  .asset-question {
+    display: flex;
+    align-items-center;
+    margin-bottom: 1rem;
+  }
+  
+  .asset-icon {
+    font-size: 2rem;
+    color: var(--brand-purple);
+    margin-right: 1rem;
+  }
+  
+  .toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 60px;
+    height: 34px;
+    margin-left: auto;
+  }
+  
+  .toggle-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+  
+  .slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    transition: .4s;
+    border-radius: 34px;
+  }
+  
+  .slider:before {
+    position: absolute;
+    content: "";
+    height: 26px;
+    width: 26px;
+    left: 4px;
+    bottom: 4px;
+    background-color: white;
+    transition: .4s;
+    border-radius: 50%;
+  }
+  
+  input:checked + .slider {
+    background-color: var(--brand-purple);
+  }
+  
+  input:checked + .slider:before {
+    transform: translateX(26px);
+  }
+  
+  .quantity-controls {
+    margin-top: 1rem;
+    display: none;
+  }
+  
+  .quantity-controls.show {
+    display: block;
+  }
+  
+  .btn-primary {
+    background: linear-gradient(135deg, var(--brand-orange) 0%, #ff7519 100%);
+    border: none;
+    padding: 12px 30px;
+    font-weight: 600;
+  }
+  
+  .btn-primary:hover {
+    background: linear-gradient(135deg, #ff7519 0%, var(--brand-orange) 100%);
+    transform: translateY(-1px);
+  }
+  
+  .form-control:focus {
+    border-color: var(--brand-purple);
+    box-shadow: 0 0 0 0.2rem rgba(99, 87, 255, 0.25);
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+  <div class="row justify-content-center">
+    <div class="col-lg-10">
+      
+      <!-- Header del Wizard -->
+      <div class="card shadow-sm mb-4">
+        <div class="wizard-header">
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <h4 class="mb-1">Nueva Denuncia Juridica</h4>
+              <p class="mb-0">Paso 3 de 9: Informacion Patrimonial</p>
+            </div>
+            <div class="text-end">
+              <small>Progreso</small>
+              <div class="progress-bar mt-1" style="width: 200px;">
+                <div class="progress-fill"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="card-body">
+          <form method="post" id="paso3Form">
+            {% csrf_token %}
+            
+            <!-- Información Patrimonial -->
+            <div class="form-section">
+              <h5 class="section-title">
+                <i class="bi bi-house-fill me-2"></i>
+                Bienes Patrimoniales
+              </h5>
+              
+              <p class="text-muted mb-4">Indique si posee los siguientes bienes y en que cantidad:</p>
+              
+              <!-- Casa -->
+              <div class="asset-item">
+                <div class="asset-question">
+                  <i class="bi bi-house asset-icon"></i>
+                  <div class="flex-grow-1">
+                    <h6 class="mb-1">Casa</h6>
+                    <p class="text-muted small mb-0">Vivienda unifamiliar propia</p>
+                  </div>
+                  <label class="toggle-switch">
+                    <input type="checkbox" name="tiene_casa" onchange="toggleQuantity('casa', this)">
+                    <span class="slider"></span>
+                  </label>
+                </div>
+                <div class="quantity-controls" id="casa-quantity">
+                  <label class="form-label">Cantidad de casas</label>
+                  <input type="number" name="cantidad_casas" class="form-control" 
+                         min="0" max="50" value="0" placeholder="0">
+                </div>
+              </div>
+              
+              <!-- Apartamento -->
+              <div class="asset-item">
+                <div class="asset-question">
+                  <i class="bi bi-building asset-icon"></i>
+                  <div class="flex-grow-1">
+                    <h6 class="mb-1">Apartamento</h6>
+                    <p class="text-muted small mb-0">Vivienda en edificio o conjunto</p>
+                  </div>
+                  <label class="toggle-switch">
+                    <input type="checkbox" name="tiene_apartamento" onchange="toggleQuantity('apartamento', this)">
+                    <span class="slider"></span>
+                  </label>
+                </div>
+                <div class="quantity-controls" id="apartamento-quantity">
+                  <label class="form-label">Cantidad de apartamentos</label>
+                  <input type="number" name="cantidad_apartamentos" class="form-control" 
+                         min="0" max="50" value="0" placeholder="0">
+                </div>
+              </div>
+              
+              <!-- Local Comercial -->
+              <div class="asset-item">
+                <div class="asset-question">
+                  <i class="bi bi-shop asset-icon"></i>
+                  <div class="flex-grow-1">
+                    <h6 class="mb-1">Local comercial</h6>
+                    <p class="text-muted small mb-0">Locales, oficinas o espacios comerciales</p>
+                  </div>
+                  <label class="toggle-switch">
+                    <input type="checkbox" name="tiene_local_comercial" onchange="toggleQuantity('local', this)">
+                    <span class="slider"></span>
+                  </label>
+                </div>
+                <div class="quantity-controls" id="local-quantity">
+                  <label class="form-label">Cantidad de locales</label>
+                  <input type="number" name="cantidad_locales" class="form-control" 
+                         min="0" max="50" value="0" placeholder="0">
+                </div>
+              </div>
+              
+              <!-- Vehículo -->
+              <div class="asset-item">
+                <div class="asset-question">
+                  <i class="bi bi-car-front asset-icon"></i>
+                  <div class="flex-grow-1">
+                    <h6 class="mb-1">Vehiculo</h6>
+                    <p class="text-muted small mb-0">Automoviles, motocicletas, etc.</p>
+                  </div>
+                  <label class="toggle-switch">
+                    <input type="checkbox" name="tiene_vehiculo" onchange="toggleQuantity('vehiculo', this)">
+                    <span class="slider"></span>
+                  </label>
+                </div>
+                <div class="quantity-controls" id="vehiculo-quantity">
+                  <label class="form-label">Cantidad de vehiculos</label>
+                  <input type="number" name="cantidad_vehiculos" class="form-control" 
+                         min="0" max="20" value="0" placeholder="0">
+                </div>
+              </div>
+              
+              <!-- Otros Activos -->
+              <div class="asset-item">
+                <div class="asset-question">
+                  <i class="bi bi-gem asset-icon"></i>
+                  <div class="flex-grow-1">
+                    <h6 class="mb-1">Otros activos</h6>
+                    <p class="text-muted small mb-0">CDT, Bonos, Acciones, Maquinaria, etc.</p>
+                  </div>
+                  <label class="toggle-switch">
+                    <input type="checkbox" name="tiene_otros_activos" onchange="toggleQuantity('otros', this)">
+                    <span class="slider"></span>
+                  </label>
+                </div>
+                <div class="quantity-controls" id="otros-quantity">
+                  <label class="form-label">Descripcion de otros activos</label>
+                  <textarea name="descripcion_otros_activos" class="form-control" rows="3"
+                            placeholder="Describa detalladamente otros activos que posea (CDT, inversiones, maquinaria, etc.)"></textarea>
+                </div>
+              </div>
+              
+            </div>
+            
+            <!-- Resumen Patrimonial -->
+            <div class="form-section">
+              <h5 class="section-title">
+                <i class="bi bi-calculator me-2"></i>
+                Resumen Patrimonial
+              </h5>
+              
+              <div class="row">
+                <div class="col-md-6">
+                  <label class="form-label">Valor estimado total de bienes</label>
+                  <div class="input-group">
+                    <span class="input-group-text">$</span>
+                    <input type="number" name="valor_total_bienes" class="form-control" 
+                           placeholder="0" min="0" step="1000000">
+                  </div>
+                  <small class="text-muted">Valor aproximado en pesos colombianos</small>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Tiene deudas hipotecarias?</label>
+                  <select name="tiene_deudas" class="form-select">
+                    <option value="">Seleccione...</option>
+                    <option value="SI">Si</option>
+                    <option value="NO">No</option>
+                  </select>
+                </div>
+              </div>
+              
+              <div class="mt-3">
+                <label class="form-label">Observaciones adicionales</label>
+                <textarea name="observaciones_patrimonio" class="form-control" rows="3"
+                          placeholder="Informacion adicional sobre su situacion patrimonial..."></textarea>
+              </div>
+            </div>
+
+            <!-- Botones de navegación -->
+            <div class="d-flex justify-content-between mt-4">
+              <a href="{% url 'denuncias:wizard_paso' paso='paso2' %}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left me-2"></i>Paso Anterior
+              </a>
+              
+              <button type="submit" class="btn btn-primary">
+                Continuar al Paso 4
+                <i class="bi bi-arrow-right ms-2"></i>
+              </button>
+            </div>
+            
+          </form>
+        </div>
+      </div>
+      
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function toggleQuantity(type, checkbox) {
+    const quantityDiv = document.getElementById(type + '-quantity');
+    const quantityInput = quantityDiv.querySelector('input, textarea');
+    
+    if (checkbox.checked) {
+        quantityDiv.classList.add('show');
+        if (quantityInput.type === 'number' && quantityInput.value == '0') {
+            quantityInput.value = '1';
+        }
+    } else {
+        quantityDiv.classList.remove('show');
+        if (quantityInput.type === 'number') {
+            quantityInput.value = '0';
+        } else {
+            quantityInput.value = '';
+        }
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('paso3Form');
+    const submitBtn = form.querySelector('button[type="submit"]');
+    
+    // Validacion del formulario
+    form.addEventListener('submit', function(e) {
+        // Loading state
+        submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Guardando...';
+        submitBtn.disabled = true;
+    });
+    
+    // Auto-guardar progreso
+    function autoSave() {
+        const formData = new FormData(form);
+        const data = Object.fromEntries(formData.entries());
+        localStorage.setItem('wizard_paso3_temp', JSON.stringify(data));
+    }
+    
+    setInterval(autoSave, 30000);
+    
+    // Cargar datos guardados
+    const savedData = localStorage.getItem('wizard_paso3_temp');
+    if (savedData) {
+        try {
+            const data = JSON.parse(savedData);
+            Object.keys(data).forEach(key => {
+                const field = form.querySelector(`[name="${key}"]`);
+                if (field) {
+                    if (field.type === 'checkbox') {
+                        field.checked = data[key] === 'on';
+                        if (field.checked) {
+                            field.dispatchEvent(new Event('change'));
+                        }
+                    } else {
+                        field.value = data[key];
+                    }
+                }
+            });
+        } catch (e) {
+            console.log('No hay datos guardados validos');
+        }
+    }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,172 @@
+{% extends 'base.html' %}
+
+{% block title %}Mis Casos - Sistema Jurídico{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <!-- Header -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h2><i class="bi bi-list-task"></i> Mis Casos</h2>
+                <p class="text-muted">Gestiona y revisa el estado de tus denuncias</p>
+            </div>
+            <a href="{% url 'denuncias:wizard_inicio' %}" class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i> Nueva Denuncia
+            </a>
+        </div>
+
+        <!-- Cases List -->
+        {% if casos %}
+            <div class="row">
+                {% for caso in casos %}
+                <div class="col-lg-6 mb-4">
+                    <div class="card h-100 card-hover">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h6 class="mb-0">
+                                <i class="bi bi-folder"></i> {{ caso.nua }}
+                            </h6>
+                            {% if caso.status == 'draft' %}
+                                <span class="badge bg-secondary">{{ caso.get_status_display }}</span>
+                            {% elif caso.status == 'submitted' %}
+                                <span class="badge bg-info">{{ caso.get_status_display }}</span>
+                            {% elif caso.status == 'in_review' %}
+                                <span class="badge bg-warning">{{ caso.get_status_display }}</span>
+                            {% elif caso.status == 'reviewed' %}
+                                <span class="badge bg-success">{{ caso.get_status_display }}</span>
+                            {% elif caso.status == 'rejected' %}
+                                <span class="badge bg-danger">{{ caso.get_status_display }}</span>
+                            {% else %}
+                                <span class="badge bg-primary">{{ caso.get_status_display }}</span>
+                            {% endif %}
+                        </div>
+
+                        <div class="card-body">
+                            <!-- Case Type -->
+                            <div class="mb-2">
+                                <small class="text-muted">Área:</small>
+                                <span class="badge bg-light text-dark ms-1">
+                                    {{ caso.get_consultation_area_display }}
+                                </span>
+                            </div>
+
+                            <!-- Dates -->
+                            <div class="mb-3">
+                                <div class="row text-sm">
+                                    <div class="col-6">
+                                        <small class="text-muted">Creado:</small><br>
+                                        <small>{{ caso.created_at|date:"d/m/Y H:i" }}</small>
+                                    </div>
+                                    <div class="col-6">
+                                        <small class="text-muted">Actualizado:</small><br>
+                                        <small>{{ caso.updated_at|date:"d/m/Y H:i" }}</small>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Usuario Asesorado Info -->
+                            {% if caso.usuario_asesorado %}
+                            <div class="mb-3">
+                                <small class="text-muted">Usuario asesorado:</small>
+                                <p class="small mb-0">
+                                    <strong>{{ caso.usuario_asesorado.full_name }}</strong><br>
+                                    {{ caso.usuario_asesorado.get_document_type_display }}: {{ caso.usuario_asesorado.document_number }}
+                                </p>
+                            </div>
+                            {% endif %}
+
+                            <!-- Indicadores de Feedback -->
+                            {% if caso.total_feedback > 0 %}
+                            <div class="mb-3">
+                                <div class="d-flex gap-2 flex-wrap">
+                                    <span class="badge bg-info">
+                                        <i class="bi bi-chat-left-text"></i> {{ caso.total_feedback }} Feedback{{ caso.total_feedback|pluralize }}
+                                    </span>
+                                    {% if caso.feedback_critico %}
+                                    <span class="badge bg-danger">
+                                        <i class="bi bi-exclamation-triangle"></i> Crítico
+                                    </span>
+                                    {% endif %}
+                                    {% if caso.feedback_pendiente %}
+                                    <span class="badge bg-warning text-dark">
+                                        <i class="bi bi-clock"></i> Acción Requerida
+                                    </span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            {% endif %}
+
+                            <!-- Actions -->
+                            <div class="d-grid gap-2 d-md-flex">
+                                <a href="{% url 'denuncias:caso_detalle' caso.id %}"
+                                   class="btn btn-outline-primary btn-sm flex-fill">
+                                    <i class="bi bi-eye"></i> Ver Detalle
+                                </a>
+
+                                {% if caso.status == 'draft' %}
+                                    <a href="{% url 'denuncias:wizard_paso' paso='paso1' %}"
+                                       class="btn btn-primary btn-sm flex-fill">
+                                        <i class="bi bi-pencil"></i> Continuar
+                                    </a>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="card-footer bg-light small text-muted">
+                            {% if caso.assigned_teacher %}
+                                <i class="bi bi-person-check"></i> Asignado a: {{ caso.assigned_teacher.get_full_name|default:caso.assigned_teacher.username }}
+                            {% else %}
+                                <i class="bi bi-person-x"></i> Sin asignar
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+        {% else %}
+            <!-- Empty State -->
+            <div class="text-center py-5">
+                <div class="mb-4">
+                    <i class="bi bi-folder-x" style="font-size: 4rem; color: #6c757d;"></i>
+                </div>
+
+                <h5 class="text-muted">Aún no tienes casos registrados</h5>
+                <p class="text-muted">Comienza creando tu primera denuncia para verla aquí.</p>
+                <a href="{% url 'denuncias:wizard_inicio' %}" class="btn btn-primary">
+                    <i class="bi bi-plus-circle"></i> Crear Primera Denuncia
+                </a>
+            </div>
+        {% endif %}
+
+        <!-- Quick Stats -->
+        <div class="row mt-5">
+            <div class="col-12">
+                <div class="card bg-light">
+                    <div class="card-body">
+                        <h6><i class="bi bi-bar-chart"></i> Estadísticas Rápidas</h6>
+                        <div class="row text-center">
+                            <div class="col-3">
+                                <div class="h5 mb-0 text-primary">{{ total_casos }}</div>
+                                <small class="text-muted">Total</small>
+                            </div>
+                            <div class="col-3">
+                                <div class="h5 mb-0 text-warning">{{ casos_en_progreso }}</div>
+                                <small class="text-muted">En Progreso</small>
+                            </div>
+                            <div class="col-3">
+                                <div class="h5 mb-0 text-success">{{ casos_completados }}</div>
+                                <small class="text-muted">Completados</small>
+                            </div>
+                            <div class="col-3">
+                                <div class="h5 mb-0 text-secondary">{{ casos_borradores }}</div>
+                                <small class="text-muted">Borradores</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

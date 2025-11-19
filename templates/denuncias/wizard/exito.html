@@ -1,0 +1,491 @@
+{% extends "base.html" %}
+{% block title %}Solicitud Enviada Exitosamente - Sistema Jurídico{% endblock %}
+
+{% block extra_css %}
+<style>
+  :root {
+    --brand-orange: #f97316;
+    --brand-purple: #7c3aed;
+  }
+  
+  .success-header {
+    background: linear-gradient(135deg, var(--brand-orange) 0%, var(--brand-purple) 100%);
+    color: white;
+    padding: 3rem 2rem;
+    text-align: center;
+    border-radius: 15px;
+    margin-bottom: 2rem;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .success-header::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+    animation: pulse 3s ease-in-out infinite;
+  }
+  
+  @keyframes pulse {
+    0%, 100% { transform: scale(1); opacity: 0.7; }
+    50% { transform: scale(1.1); opacity: 0.3; }
+  }
+  
+  .success-icon {
+    font-size: 5rem;
+    color: white;
+    margin-bottom: 1rem;
+    animation: bounceIn 1s ease-out;
+  }
+  
+  @keyframes bounceIn {
+    0% { transform: scale(0.3); opacity: 0; }
+    50% { transform: scale(1.05); }
+    70% { transform: scale(0.9); }
+    100% { transform: scale(1); opacity: 1; }
+  }
+  
+  .nua-card {
+    background: white;
+    border: 3px solid var(--brand-orange);
+    border-radius: 15px;
+    padding: 2rem;
+    text-align: center;
+    margin: 2rem 0;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    position: relative;
+  }
+  
+  .nua-card::before {
+    content: '📋';
+    position: absolute;
+    top: -15px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: white;
+    padding: 0 10px;
+    font-size: 1.5rem;
+  }
+  
+  .nua-number {
+    font-family: 'Courier New', monospace;
+    font-size: 1.8rem;
+    font-weight: bold;
+    color: var(--brand-purple);
+    background: #f8f9fa;
+    padding: 1rem;
+    border-radius: 8px;
+    border: 2px dashed var(--brand-orange);
+    margin: 1rem 0;
+    letter-spacing: 2px;
+  }
+  
+  .copy-btn {
+    background: var(--brand-orange);
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+  
+  .copy-btn:hover {
+    background: #ea580c;
+    transform: translateY(-2px);
+  }
+  
+  .timeline-section {
+    background: white;
+    border-radius: 15px;
+    padding: 2rem;
+    margin: 2rem 0;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+  }
+  
+  .timeline-item {
+    display: flex;
+    align-items: flex-start;
+    margin-bottom: 1.5rem;
+    position: relative;
+  }
+  
+  .timeline-item::before {
+    content: '';
+    position: absolute;
+    left: 20px;
+    top: 40px;
+    bottom: -20px;
+    width: 2px;
+    background: linear-gradient(to bottom, var(--brand-orange), var(--brand-purple));
+  }
+  
+  .timeline-item:last-child::before {
+    display: none;
+  }
+  
+  .timeline-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--brand-orange), var(--brand-purple));
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 1rem;
+    flex-shrink: 0;
+    z-index: 1;
+    position: relative;
+  }
+  
+  .timeline-content h6 {
+    color: var(--brand-purple);
+    margin-bottom: 0.5rem;
+  }
+  
+  .action-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin: 2rem 0;
+  }
+  
+  .action-card {
+    background: white;
+    border-radius: 12px;
+    padding: 1.5rem;
+    text-align: center;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    transition: all 0.3s ease;
+    border: 1px solid #e9ecef;
+  }
+  
+  .action-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+    border-color: var(--brand-orange);
+  }
+  
+  .action-icon {
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+    color: var(--brand-orange);
+  }
+  
+  .btn-primary {
+    background: linear-gradient(135deg, var(--brand-orange) 0%, #ea580c 100%);
+    border: none;
+    padding: 12px 30px;
+    font-weight: 600;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+  }
+  
+  .btn-primary:hover {
+    background: linear-gradient(135deg, #ea580c 0%, var(--brand-orange) 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(249, 115, 22, 0.4);
+  }
+  
+  .btn-outline-primary {
+    border: 2px solid var(--brand-purple);
+    color: var(--brand-purple);
+    padding: 12px 30px;
+    font-weight: 600;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+  }
+  
+  .btn-outline-primary:hover {
+    background: var(--brand-purple);
+    color: white;
+    transform: translateY(-2px);
+  }
+  
+  .contact-info {
+    background: linear-gradient(135deg, rgba(124, 58, 237, 0.1), rgba(249, 115, 22, 0.1));
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin: 2rem 0;
+  }
+  
+  .celebration {
+    text-align: center;
+    margin: 2rem 0;
+  }
+  
+  .celebration-emoji {
+    font-size: 3rem;
+    animation: bounce 2s infinite;
+  }
+  
+  @keyframes bounce {
+    0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+    40% { transform: translateY(-20px); }
+    60% { transform: translateY(-10px); }
+  }
+  
+  .print-btn {
+    background: #6c757d;
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 6px;
+    transition: all 0.3s ease;
+  }
+  
+  .print-btn:hover {
+    background: #5a6268;
+    transform: translateY(-1px);
+  }
+  
+  @media print {
+    .no-print { display: none !important; }
+    .success-header { background: #f8f9fa !important; color: #333 !important; }
+  }
+  
+  @media (max-width: 768px) {
+    .success-header { padding: 2rem 1rem; }
+    .nua-number { font-size: 1.4rem; letter-spacing: 1px; }
+    .action-cards { grid-template-columns: 1fr; }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+  <div class="row justify-content-center">
+    <div class="col-lg-8">
+      
+      <!-- Header de Éxito -->
+      <div class="success-header">
+        <div class="success-icon">
+          <i class="bi bi-check-circle-fill"></i>
+        </div>
+        <h1 class="mb-3">¡Solicitud Enviada Exitosamente!</h1>
+        <p class="lead mb-0">Su consulta jurídica ha sido registrada correctamente en nuestro sistema</p>
+      </div>
+
+      <!-- Tarjeta del NUA -->
+      <div class="nua-card">
+        <h4 class="text-primary mb-3">Número Único de Asesoría (NUA)</h4>
+        <div class="nua-number">{{ caso.nua }}</div>
+        <p class="text-muted mb-3">
+          <strong>Importante:</strong> Guarde este número para futuras consultas y seguimiento de su caso
+        </p>
+        <button class="copy-btn" onclick="copyNUA()">
+          <i class="bi bi-clipboard me-2"></i>Copiar NUA
+        </button>
+      </div>
+
+      <!-- Celebración -->
+      <div class="celebration">
+        <div class="celebration-emoji">🎉</div>
+        <h5 class="text-success mt-2">¡Felicitaciones por completar el proceso!</h5>
+      </div>
+
+      <!-- Timeline de Próximos Pasos -->
+      <div class="timeline-section">
+        <h5 class="text-center mb-4">
+          <i class="bi bi-clock-history me-2"></i>
+          ¿Qué sucede ahora?
+        </h5>
+        
+        <div class="timeline-item">
+          <div class="timeline-icon">
+            <i class="bi bi-check"></i>
+          </div>
+          <div class="timeline-content">
+            <h6>Solicitud Recibida</h6>
+            <p class="text-muted mb-0">Su consulta ha sido registrada en nuestro sistema y asignada el NUA: <strong>{{ caso.nua }}</strong></p>
+            <small class="text-success">✓ Completado ahora</small>
+          </div>
+        </div>
+        
+        <div class="timeline-item">
+          <div class="timeline-icon">
+            <i class="bi bi-person-check"></i>
+          </div>
+          <div class="timeline-content">
+            <h6>Asignación de Estudiante</h6>
+            <p class="text-muted mb-0">Un estudiante de práctica jurídica será asignado a su caso para brindarle asesoría</p>
+            <small class="text-warning">⏳ En las próximas 24-48 horas</small>
+          </div>
+        </div>
+        
+        <div class="timeline-item">
+          <div class="timeline-icon">
+            <i class="bi bi-telephone"></i>
+          </div>
+          <div class="timeline-content">
+            <h6>Contacto Inicial</h6>
+            <p class="text-muted mb-0">El estudiante se comunicará con usted para programar la primera cita de asesoría</p>
+            <small class="text-info">📅 Dentro de 2-3 días hábiles</small>
+          </div>
+        </div>
+        
+        <div class="timeline-item">
+          <div class="timeline-icon">
+            <i class="bi bi-chat-dots"></i>
+          </div>
+          <div class="timeline-content">
+            <h6>Primera Consulta</h6>
+            <p class="text-muted mb-0">Se realizará la consulta inicial y se definirá el plan de asesoría jurídica</p>
+            <small class="text-info">🗓️ Según disponibilidad programada</small>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tarjetas de Acciones -->
+      <div class="action-cards">
+        <div class="action-card">
+          <div class="action-icon">
+            <i class="bi bi-house-door"></i>
+          </div>
+          <h6>Ir al Dashboard</h6>
+          <p class="text-muted small mb-3">Vea el estado de todas sus consultas y casos</p>
+          <a href="{% url 'denuncias:dashboard' %}" class="btn btn-primary btn-sm">
+            <i class="bi bi-speedometer2 me-1"></i>Dashboard
+          </a>
+        </div>
+        
+        <div class="action-card">
+          <div class="action-icon">
+            <i class="bi bi-printer"></i>
+          </div>
+          <h6>Imprimir Comprobante</h6>
+          <p class="text-muted small mb-3">Guarde una copia física de su solicitud</p>
+          <button class="btn btn-outline-primary btn-sm print-btn no-print" onclick="window.print()">
+            <i class="bi bi-printer me-1"></i>Imprimir
+          </button>
+        </div>
+        
+        <div class="action-card">
+          <div class="action-icon">
+            <i class="bi bi-plus-circle"></i>
+          </div>
+          <h6>Nueva Consulta</h6>
+          <p class="text-muted small mb-3">¿Tiene otro caso? Inicie una nueva consulta</p>
+          <a href="{% url 'denuncias:wizard_inicio' %}" class="btn btn-outline-primary btn-sm">
+            <i class="bi bi-plus me-1"></i>Nueva Consulta
+          </a>
+        </div>
+      </div>
+
+      <!-- Información de Contacto -->
+      <div class="contact-info">
+        <h6 class="mb-3">
+          <i class="bi bi-info-circle me-2"></i>
+          Información Importante
+        </h6>
+        <div class="row">
+          <div class="col-md-6">
+            <p class="mb-2"><strong>Horarios de atención:</strong></p>
+            <p class="small text-muted mb-3">
+              Lunes a Viernes: 8:00 AM - 5:00 PM<br>
+              Sábados: 8:00 AM - 12:00 PM
+            </p>
+          </div>
+          <div class="col-md-6">
+            <p class="mb-2"><strong>Contacto:</strong></p>
+            <p class="small text-muted mb-3">
+              📧 consultorio@unab.edu.co<br>
+              📞 (607) 643-6261
+            </p>
+          </div>
+        </div>
+        <div class="alert alert-warning mb-0">
+          <small>
+            <i class="bi bi-exclamation-triangle me-2"></i>
+            <strong>Recuerde:</strong> Mantenga disponible su NUA para cualquier consulta o seguimiento de su caso.
+          </small>
+        </div>
+      </div>
+
+      <!-- Botones Finales -->
+      <div class="text-center mt-4 mb-5 no-print">
+        <a href="{% url 'denuncias:dashboard' %}" class="btn btn-primary me-3">
+          <i class="bi bi-house-door me-2"></i>Ir al Dashboard
+        </a>
+        <a href="{% url 'denuncias:wizard_inicio' %}" class="btn btn-outline-primary">
+          <i class="bi bi-plus-circle me-2"></i>Nueva Consulta
+        </a>
+      </div>
+
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function copyNUA() {
+    const nua = '{{ caso.nua }}';
+    
+    if (navigator.clipboard) {
+        navigator.clipboard.writeText(nua).then(function() {
+            showCopySuccess();
+        });
+    } else {
+        // Fallback para navegadores más antiguos
+        const textArea = document.createElement('textarea');
+        textArea.value = nua;
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+        showCopySuccess();
+    }
+}
+
+function showCopySuccess() {
+    const btn = document.querySelector('.copy-btn');
+    const originalText = btn.innerHTML;
+    
+    btn.innerHTML = '<i class="bi bi-check me-2"></i>¡Copiado!';
+    btn.style.background = '#28a745';
+    
+    setTimeout(function() {
+        btn.innerHTML = originalText;
+        btn.style.background = '#f97316';
+    }, 2000);
+}
+
+// Limpiar todo el localStorage del wizard
+document.addEventListener('DOMContentLoaded', function() {
+    for (let i = 1; i <= 9; i++) {
+        localStorage.removeItem('wizard_paso' + i + '_temp');
+    }
+    localStorage.removeItem('wizard_paso9_progress');
+    
+    // Animación de entrada
+    const elements = document.querySelectorAll('.timeline-item, .action-card');
+    elements.forEach(function(element, index) {
+        element.style.opacity = '0';
+        element.style.transform = 'translateY(20px)';
+        
+        setTimeout(function() {
+            element.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+            element.style.opacity = '1';
+            element.style.transform = 'translateY(0)';
+        }, index * 200);
+    });
+});
+
+// Auto-scroll suave al cargar la página
+window.addEventListener('load', function() {
+    setTimeout(function() {
+        window.scrollTo({
+            top: 0,
+            behavior: 'smooth'
+        });
+    }, 500);
+});
+</script>
+{% endblock %}

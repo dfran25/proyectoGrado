@@ -1,0 +1,466 @@
+{% extends "base.html" %}
+{% block title %}Paso 6: Relacion de los Hechos - Sistema Juridico{% endblock %}
+
+{% block extra_css %}
+<style>
+  :root {
+    --brand-orange: #ff6600;
+    --brand-purple: #6357ff;
+  }
+  
+  .wizard-header {
+    background: linear-gradient(135deg, var(--brand-orange) 0%, var(--brand-purple) 100%);
+    color: white;
+    padding: 1.5rem;
+    border-radius: 10px 10px 0 0;
+  }
+  
+  .progress-bar {
+    height: 8px;
+    background: #e9ecef;
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--brand-orange), var(--brand-purple));
+    width: 66.66%; /* 6/9 pasos */
+    transition: width 0.3s ease;
+  }
+  
+  .form-section {
+    background: white;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+  
+  .section-title {
+    color: var(--brand-purple);
+    font-weight: 600;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid #e9ecef;
+  }
+  
+  .narrative-textarea {
+    min-height: 300px;
+    resize: vertical;
+  }
+  
+  .helper-card {
+    background: linear-gradient(135deg, rgba(99, 87, 255, 0.1), rgba(99, 87, 255, 0.05));
+    border: 1px solid rgba(99, 87, 255, 0.2);
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+  
+  .helper-icon {
+    font-size: 2rem;
+    color: var(--brand-purple);
+    margin-bottom: 0.5rem;
+  }
+  
+  .timeline-item {
+    border-left: 3px solid var(--brand-purple);
+    padding-left: 1rem;
+    margin-bottom: 1rem;
+    padding-bottom: 1rem;
+  }
+  
+  .timeline-item:last-child {
+    border-left-color: transparent;
+  }
+  
+  .timeline-date {
+    font-weight: 600;
+    color: var(--brand-purple);
+    font-size: 0.9rem;
+  }
+  
+  .character-counter {
+    font-size: 0.85rem;
+    color: #6c757d;
+    text-align: right;
+    margin-top: 0.5rem;
+  }
+  
+  .character-counter.warning {
+    color: #ffc107;
+  }
+  
+  .character-counter.danger {
+    color: #dc3545;
+  }
+  
+  .btn-primary {
+    background: linear-gradient(135deg, var(--brand-orange) 0%, #ff7519 100%);
+    border: none;
+    padding: 12px 30px;
+    font-weight: 600;
+  }
+  
+  .btn-primary:hover {
+    background: linear-gradient(135deg, #ff7519 0%, var(--brand-orange) 100%);
+    transform: translateY(-1px);
+  }
+  
+  .form-control:focus {
+    border-color: var(--brand-purple);
+    box-shadow: 0 0 0 0.2rem rgba(99, 87, 255, 0.25);
+  }
+  
+  .required-field::after {
+    content: " *";
+    color: #dc3545;
+  }
+  
+  .additional-questions {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 1.5rem;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+  <div class="row justify-content-center">
+    <div class="col-lg-10">
+      
+      <!-- Header del Wizard -->
+      <div class="card shadow-sm mb-4">
+        <div class="wizard-header">
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <h4 class="mb-1">Nueva Denuncia Juridica</h4>
+              <p class="mb-0">Paso 6 de 9: Relacion de los Hechos</p>
+            </div>
+            <div class="text-end">
+              <small>Progreso</small>
+              <div class="progress-bar mt-1" style="width: 200px;">
+                <div class="progress-fill"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="card-body">
+          <!-- Guía de ayuda -->
+          <div class="helper-card">
+            <div class="text-center">
+              <i class="bi bi-lightbulb helper-icon"></i>
+              <h6>Guia para narrar los hechos</h6>
+              <p class="mb-3">Describa los hechos de manera cronologica, incluyendo:</p>
+            </div>
+            
+            <div class="row">
+              <div class="col-md-4">
+                <div class="timeline-item">
+                  <div class="timeline-date">CUANDO</div>
+                  <small>Fechas exactas o aproximadas de los hechos</small>
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div class="timeline-item">
+                  <div class="timeline-date">DONDE</div>
+                  <small>Lugares donde ocurrieron los hechos</small>
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div class="timeline-item">
+                  <div class="timeline-date">COMO</div>
+                  <small>Manera en que sucedieron los hechos</small>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <form method="post" id="paso6Form">
+            {% csrf_token %}
+            
+            <!-- Información Básica del Conflicto -->
+            <div class="form-section">
+              <h5 class="section-title">
+                <i class="bi bi-exclamation-circle me-2"></i>
+                Informacion Basica del Conflicto
+              </h5>
+              
+              <div class="row">
+                <div class="col-md-6">
+                  <label class="form-label required-field">Tipo de conflicto</label>
+                  <select name="tipo_conflicto" class="form-select" required>
+                    <option value="">Seleccione...</option>
+                    <option value="LABORAL">Laboral</option>
+                    <option value="CIVIL">Civil</option>
+                    <option value="COMERCIAL">Comercial</option>
+                    <option value="FAMILIAR">Familiar</option>
+                    <option value="ADMINISTRATIVO">Administrativo</option>
+                    <option value="PENAL">Penal</option>
+                    <option value="OTRO">Otro</option>
+                  </select>
+                </div>
+                
+                <div class="col-md-6">
+                  <label class="form-label">Fecha del primer hecho</label>
+                  <input type="date" name="fecha_primer_hecho" class="form-control">
+                </div>
+              </div>
+              
+              <div class="mt-3">
+                <label class="form-label">Resumen en una frase</label>
+                <input type="text" name="resumen_breve" class="form-control" 
+                       placeholder="Ej: Despido injustificado de mi trabajo en la empresa XYZ"
+                       maxlength="200">
+                <div class="character-counter">
+                  <span id="resumen-counter">0</span>/200 caracteres
+                </div>
+              </div>
+            </div>
+
+            <!-- Narración Detallada -->
+            <div class="form-section">
+              <h5 class="section-title">
+                <i class="bi bi-journal-text me-2"></i>
+                Narracion Detallada de los Hechos
+              </h5>
+              
+              <div class="mb-3">
+                <label class="form-label required-field">
+                  Describa los hechos detalladamente
+                </label>
+                <textarea name="descripcion_hechos" class="form-control narrative-textarea" 
+                          placeholder="Relate cronologicamente todos los hechos relevantes, incluyendo fechas, lugares, personas involucradas y circunstancias específicas. Sea lo más detallado y objetivo posible."
+                          required></textarea>
+                <div class="character-counter" id="descripcion-counter">
+                  <span>0</span> caracteres
+                </div>
+                <small class="text-muted">
+                  Minimo recomendado: 500 caracteres. Incluya todos los detalles relevantes.
+                </small>
+              </div>
+            </div>
+
+            <!-- Circunstancias Específicas -->
+            <div class="form-section">
+              <h5 class="section-title">
+                <i class="bi bi-geo-alt me-2"></i>
+                Circunstancias Especificas
+              </h5>
+              
+              <div class="additional-questions">
+                <div class="row">
+                  <div class="col-md-6">
+                    <label class="form-label">Lugar principal donde ocurrieron los hechos</label>
+                    <input type="text" name="lugar_hechos" class="form-control" 
+                           placeholder="Direccion o descripcion del lugar">
+                  </div>
+                  
+                  <div class="col-md-6">
+                    <label class="form-label">Testigos presentes</label>
+                    <input type="text" name="testigos" class="form-control" 
+                           placeholder="Nombres de testigos (si los hay)">
+                  </div>
+                </div>
+                
+                <div class="row mt-3">
+                  <div class="col-md-6">
+                    <label class="form-label">Hay documentos relacionados?</label>
+                    <select name="hay_documentos" class="form-select">
+                      <option value="">Seleccione...</option>
+                      <option value="SI">Si</option>
+                      <option value="NO">No</option>
+                      <option value="ALGUNOS">Algunos</option>
+                    </select>
+                  </div>
+                  
+                  <div class="col-md-6">
+                    <label class="form-label">Se hicieron denuncias previas?</label>
+                    <select name="denuncias_previas" class="form-select">
+                      <option value="">Seleccione...</option>
+                      <option value="SI">Si</option>
+                      <option value="NO">No</option>
+                    </select>
+                  </div>
+                </div>
+                
+                <div class="mt-3">
+                  <label class="form-label">Que documentos tiene disponibles?</label>
+                  <textarea name="documentos_disponibles" class="form-control" rows="3"
+                            placeholder="Liste los documentos que posee relacionados con el caso (contratos, correos, fotografias, etc.)"></textarea>
+                </div>
+              </div>
+            </div>
+
+            <!-- Afectaciones -->
+            <div class="form-section">
+              <h5 class="section-title">
+                <i class="bi bi-heart-break me-2"></i>
+                Afectaciones y Daños
+              </h5>
+              
+              <div class="row">
+                <div class="col-md-6">
+                  <label class="form-label">Tipo de afectacion</label>
+                  <div class="form-check">
+                    <input class="form-check-input" type="checkbox" name="afectacion_economica" value="SI">
+                    <label class="form-check-label">Economica</label>
+                  </div>
+                  <div class="form-check">
+                    <input class="form-check-input" type="checkbox" name="afectacion_moral" value="SI">
+                    <label class="form-check-label">Moral o psicologica</label>
+                  </div>
+                  <div class="form-check">
+                    <input class="form-check-input" type="checkbox" name="afectacion_fisica" value="SI">
+                    <label class="form-check-label">Fisica</label>
+                  </div>
+                  <div class="form-check">
+                    <input class="form-check-input" type="checkbox" name="afectacion_laboral" value="SI">
+                    <label class="form-check-label">Laboral</label>
+                  </div>
+                </div>
+                
+                <div class="col-md-6">
+                  <label class="form-label">Valor aproximado de perjuicios economicos</label>
+                  <div class="input-group">
+                    <span class="input-group-text">$</span>
+                    <input type="number" name="valor_perjuicios" class="form-control" 
+                           placeholder="0" min="0" step="1000">
+                  </div>
+                  <small class="text-muted">Solo si aplica y puede estimarlo</small>
+                </div>
+              </div>
+              
+              <div class="mt-3">
+                <label class="form-label">Describa como le han afectado estos hechos</label>
+                <textarea name="descripcion_afectaciones" class="form-control" rows="4"
+                          placeholder="Explique detalladamente como estos hechos le han afectado personal, economica o profesionalmente"></textarea>
+              </div>
+            </div>
+
+            <!-- Botones de navegación -->
+            <div class="d-flex justify-content-between mt-4">
+              <a href="{% url 'denuncias:wizard_paso' paso='paso5' %}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left me-2"></i>Paso Anterior
+              </a>
+              
+              <button type="submit" class="btn btn-primary">
+                Continuar al Paso 7
+                <i class="bi bi-arrow-right ms-2"></i>
+              </button>
+            </div>
+            
+          </form>
+        </div>
+      </div>
+      
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('paso6Form');
+    const submitBtn = form.querySelector('button[type="submit"]');
+    
+    // Contador de caracteres para resumen
+    const resumenInput = form.querySelector('[name="resumen_breve"]');
+    const resumenCounter = document.getElementById('resumen-counter');
+    
+    resumenInput.addEventListener('input', function() {
+        const count = this.value.length;
+        resumenCounter.textContent = count;
+        
+        const counterElement = resumenCounter.parentElement;
+        if (count > 180) {
+            counterElement.className = 'character-counter warning';
+        } else if (count > 200) {
+            counterElement.className = 'character-counter danger';
+        } else {
+            counterElement.className = 'character-counter';
+        }
+    });
+    
+    // Contador de caracteres para descripcion
+    const descripcionTextarea = form.querySelector('[name="descripcion_hechos"]');
+    const descripcionCounter = document.getElementById('descripcion-counter');
+    
+    descripcionTextarea.addEventListener('input', function() {
+        const count = this.value.length;
+        descripcionCounter.querySelector('span').textContent = count;
+        
+        if (count < 500) {
+            descripcionCounter.className = 'character-counter warning';
+        } else {
+            descripcionCounter.className = 'character-counter';
+        }
+    });
+    
+    // Validacion del formulario
+    form.addEventListener('submit', function(e) {
+        const descripcionHechos = form.querySelector('[name="descripcion_hechos"]').value;
+        const tipoConflicto = form.querySelector('[name="tipo_conflicto"]').value;
+        
+        if (!tipoConflicto) {
+            e.preventDefault();
+            alert('Por favor seleccione el tipo de conflicto');
+            return;
+        }
+        
+        if (descripcionHechos.length < 100) {
+            e.preventDefault();
+            alert('Por favor proporcione una descripcion mas detallada de los hechos (minimo 100 caracteres)');
+            return;
+        }
+        
+        // Loading state
+        submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Guardando...';
+        submitBtn.disabled = true;
+    });
+    
+    // Auto-resize textarea
+    descripcionTextarea.addEventListener('input', function() {
+        this.style.height = 'auto';
+        this.style.height = this.scrollHeight + 'px';
+    });
+    
+    // Auto-guardar progreso
+    function autoSave() {
+        const formData = new FormData(form);
+        const data = Object.fromEntries(formData.entries());
+        localStorage.setItem('wizard_paso6_temp', JSON.stringify(data));
+    }
+    
+    setInterval(autoSave, 30000);
+    
+    // Cargar datos guardados
+    const savedData = localStorage.getItem('wizard_paso6_temp');
+    if (savedData) {
+        try {
+            const data = JSON.parse(savedData);
+            Object.keys(data).forEach(key => {
+                const field = form.querySelector(`[name="${key}"]`);
+                if (field) {
+                    if (field.type === 'checkbox') {
+                        field.checked = data[key] === 'SI';
+                    } else {
+                        field.value = data[key];
+                    }
+                }
+            });
+            
+            // Actualizar contadores
+            resumenInput.dispatchEvent(new Event('input'));
+            descripcionTextarea.dispatchEvent(new Event('input'));
+        } catch (e) {
+            console.log('No hay datos guardados validos');
+        }
+    }
+});
+</script>
+{% endblock %}

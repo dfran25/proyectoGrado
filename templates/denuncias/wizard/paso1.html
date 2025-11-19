@@ -1,0 +1,403 @@
+{% extends "base.html" %}
+{% block title %}Paso 1: Información Personal - Sistema Juridico{% endblock %}
+
+{% block extra_css %}
+<style>
+  :root {
+    --brand-orange: #ff6600;
+    --brand-purple: #6357ff;
+  }
+  
+  .wizard-header {
+    background: linear-gradient(135deg, var(--brand-orange) 0%, var(--brand-purple) 100%);
+    color: white;
+    padding: 1.5rem;
+    border-radius: 10px 10px 0 0;
+  }
+  
+  .progress-bar {
+    height: 8px;
+    background: #e9ecef;
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--brand-orange), var(--brand-purple));
+    width: 11.11%; /* 1/9 pasos */
+    transition: width 0.3s ease;
+  }
+  
+  .form-section {
+    background: white;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+  
+  .section-title {
+    color: var(--brand-purple);
+    font-weight: 600;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid #e9ecef;
+  }
+  
+  .form-control:focus {
+    border-color: var(--brand-purple);
+    box-shadow: 0 0 0 0.2rem rgba(99, 87, 255, 0.25);
+  }
+  
+  .btn-primary {
+    background: linear-gradient(135deg, var(--brand-orange) 0%, #ff7519 100%);
+    border: none;
+    padding: 12px 30px;
+    font-weight: 600;
+  }
+  
+  .btn-primary:hover {
+    background: linear-gradient(135deg, #ff7519 0%, var(--brand-orange) 100%);
+    transform: translateY(-1px);
+  }
+  
+  .btn-outline-secondary {
+    color: #6c757d;
+    border-color: #6c757d;
+  }
+  
+  .required-field::after {
+    content: " *";
+    color: #dc3545;
+  }
+  
+  .form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1rem;
+  }
+  
+  .form-grid-full {
+    grid-column: 1 / -1;
+  }
+  
+  @media (max-width: 768px) {
+    .form-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+  <div class="row justify-content-center">
+    <div class="col-lg-10">
+      
+      <!-- Header del Wizard -->
+      <div class="card shadow-sm mb-4">
+        <div class="wizard-header">
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <h4 class="mb-1">Nueva Denuncia Juridica</h4>
+              <p class="mb-0">Paso 1 de 9: Información Personal</p>
+            </div>
+            <div class="text-end">
+              <small>Progreso</small>
+              <div class="progress-bar mt-1" style="width: 200px;">
+                <div class="progress-fill"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="card-body">
+          <form method="post" id="paso1Form">
+            {% csrf_token %}
+            
+            <!-- Información Básica -->
+            <div class="form-section">
+              <h5 class="section-title">
+                <i class="bi bi-person-circle me-2"></i>
+                Información Básica
+              </h5>
+              
+              <div class="form-grid">
+                <div>
+                  <label class="form-label required-field">Nombres completos</label>
+                  <input type="text" name="full_name" class="form-control" 
+                         placeholder="Ingrese nombres y apellidos completos" required>
+                </div>
+                
+                <div>
+                  <label class="form-label required-field">Tipo de documento</label>
+                  <select name="document_type" class="form-select" required>
+                    <option value="">Seleccione...</option>
+                    <option value="CC">Cédula de Ciudadania</option>
+                    <option value="TI">Tarjeta de Identidad</option>
+                    <option value="CE">Cédula de Extranjeria</option>
+                    <option value="PP">Pasaporte</option>
+                    <option value="NIT">NIT</option>
+                    <option value="OTRO">Otro</option>
+                  </select>
+                </div>
+                
+                <div>
+                  <label class="form-label required-field">Número de documento</label>
+                  <input type="text" name="document_number" class="form-control" 
+                         placeholder="Número sin puntos ni comas" required>
+                </div>
+                
+                <div>
+                  <label class="form-label">Lugar de expedición</label>
+                  <input type="text" name="document_expedition" class="form-control" 
+                         placeholder="Ciudad de expedición">
+                </div>
+              </div>
+            </div>
+
+            <!-- Información de Contacto -->
+            <div class="form-section">
+              <h5 class="section-title">
+                <i class="bi bi-telephone me-2"></i>
+                Información de Contacto
+              </h5>
+              
+              <div class="form-grid">
+                <div class="form-grid-full">
+                  <label class="form-label required-field">Dirección domicilio</label>
+                  <input type="text" name="address" class="form-control" 
+                         placeholder="Dirección completa de residencia" required>
+                </div>
+                
+                <div>
+                  <label class="form-label required-field">Barrio</label>
+                  <input type="text" name="neighborhood" class="form-control" 
+                         placeholder="Nombre del barrio" required>
+                </div>
+                
+                <div>
+                  <label class="form-label required-field">Ciudad</label>
+                  <input type="text" name="city" class="form-control" 
+                         placeholder="Ciudad de residencia" required>
+                </div>
+                
+                <div>
+                  <label class="form-label required-field">Teléfono</label>
+                  <input type="tel" name="phone" class="form-control" 
+                         placeholder="Número de teléfono fijo" required>
+                </div>
+                
+                <div>
+                  <label class="form-label">Celular / WhatsApp</label>
+                  <input type="tel" name="whatsapp" class="form-control" 
+                         placeholder="Número de celular">
+                </div>
+                
+                <div>
+                  <label class="form-label">Correo electrónico</label>
+                  <input type="email" name="email" class="form-control" 
+                         placeholder="correo@ejemplo.com">
+                </div>
+              </div>
+            </div>
+
+            <!-- Información de Vivienda -->
+            <div class="form-section">
+              <h5 class="section-title">
+                <i class="bi bi-house me-2"></i>
+                Información de Vivienda
+              </h5>
+              
+              <div class="form-grid">
+                <div>
+                  <label class="form-label required-field">Tipo de vivienda</label>
+                  <select name="housing_type" class="form-select" required>
+                    <option value="">Seleccione...</option>
+                    <option value="PROPIA_HIPOTECA">Propia con hipoteca</option>
+                    <option value="PROPIA_SIN_HIPOTECA">Propia sin hipoteca</option>
+                    <option value="FAMILIAR">Familiar</option>
+                    <option value="ARRENDADA">Arrendada</option>
+                    <option value="HABITACION">Habitación</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <!-- Información Laboral -->
+            <div class="form-section">
+              <h5 class="section-title">
+                <i class="bi bi-briefcase me-2"></i>
+                Información Laboral
+              </h5>
+              
+              <div class="form-grid">
+                <div class="form-grid-full">
+                  <label class="form-label">Dirección empresa o lugar de trabajo</label>
+                  <input type="text" name="workplace_address" class="form-control" 
+                         placeholder="Dirección completa del lugar de trabajo">
+                </div>
+                
+                <div>
+                  <label class="form-label">Teléfono lugar de trabajo</label>
+                  <input type="tel" name="workplace_phone" class="form-control" 
+                         placeholder="Teléfono de la empresa">
+                </div>
+                
+                <div>
+                  <label class="form-label required-field">Ocupación</label>
+                  <input type="text" name="occupation" class="form-control" 
+                         placeholder="Profesión u oficio" required>
+                </div>
+                
+                <div>
+                  <label class="form-label">Ingresos mensuales</label>
+                  <div class="input-group">
+                    <span class="input-group-text">$</span>
+                    <input type="number" name="monthly_income" class="form-control" 
+                           placeholder="0" min="0" step="1000">
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Información Familiar -->
+            <div class="form-section">
+              <h5 class="section-title">
+                <i class="bi bi-people me-2"></i>
+                Información Familiar
+              </h5>
+              
+              <div class="form-grid">
+                <div>
+                  <label class="form-label">Número de personas a cargo</label>
+                  <input type="number" name="dependents_count" class="form-control" 
+                         placeholder="0" min="0" max="20" value="0">
+                </div>
+                
+                <div>
+                  <label class="form-label required-field">Estado civil</label>
+                  <select name="civil_status" class="form-select" required>
+                    <option value="">Seleccione...</option>
+                    <option value="SOLTERO">Soltero(a)</option>
+                    <option value="CASADO">Casado(a)</option>
+                    <option value="UNION_LIBRE">Unión libre</option>
+                    <option value="DIVORCIADO">Divorciado(a)</option>
+                    <option value="VIUDO">Viudo(a)</option>
+                    <option value="SEPARADO">Separado(a)</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <!-- Botones de navegación -->
+            <div class="d-flex justify-content-between mt-4">
+              <a href="{% url 'denuncias:wizard_inicio' %}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left me-2"></i>Volver al inicio
+              </a>
+              
+              <button type="submit" class="btn btn-primary">
+                Continuar al Paso 2
+                <i class="bi bi-arrow-right ms-2"></i>
+              </button>
+            </div>
+            
+          </form>
+        </div>
+      </div>
+      
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('paso1Form');
+    const submitBtn = form.querySelector('button[type="submit"]');
+    
+    // Validación en tiempo real
+    const requiredFields = form.querySelectorAll('[required]');
+    
+    function validateForm() {
+        let isValid = true;
+        requiredFields.forEach(field => {
+            if (!field.value.trim()) {
+                isValid = false;
+            }
+        });
+        return isValid;
+    }
+    
+    // Validar al escribir
+    requiredFields.forEach(field => {
+        field.addEventListener('input', function() {
+            if (this.value.trim()) {
+                this.classList.remove('is-invalid');
+                this.classList.add('is-valid');
+            } else {
+                this.classList.remove('is-valid');
+                this.classList.add('is-invalid');
+            }
+        });
+    });
+    
+    // Validar al enviar
+    form.addEventListener('submit', function(e) {
+        if (!validateForm()) {
+            e.preventDefault();
+            alert('Por favor complete todos los campos obligatorios marcados con *');
+            return;
+        }
+        
+        // Loading state
+        submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Guardando...';
+        submitBtn.disabled = true;
+    });
+    
+    // Auto-formato para números de documento
+    const docNumber = form.querySelector('[name="document_number"]');
+    if (docNumber) {
+        docNumber.addEventListener('input', function() {
+            this.value = this.value.replace(/[^0-9]/g, '');
+        });
+    }
+    
+    // Auto-formato para teléfonos
+    const phoneFields = form.querySelectorAll('input[type="tel"]');
+    phoneFields.forEach(field => {
+        field.addEventListener('input', function() {
+            this.value = this.value.replace(/[^0-9+\-\s]/g, '');
+        });
+    });
+    
+    // Guardar progreso automáticamente
+    function autoSave() {
+        const formData = new FormData(form);
+        const data = Object.fromEntries(formData.entries());
+        localStorage.setItem('wizard_paso1_temp', JSON.stringify(data));
+    }
+    
+    // Auto-guardar cada 30 segundos
+    setInterval(autoSave, 30000);
+    
+    // Cargar datos guardados
+    const savedData = localStorage.getItem('wizard_paso1_temp');
+    if (savedData) {
+        try {
+            const data = JSON.parse(savedData);
+            Object.keys(data).forEach(key => {
+                const field = form.querySelector(`[name="${key}"]`);
+                if (field && data[key]) {
+                    field.value = data[key];
+                }
+            });
+        } catch (e) {
+            console.log('No hay datos guardados válidos');
+        }
+    }
+});
+</script>
+{% endblock %}

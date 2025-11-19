@@ -1,0 +1,287 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Dashboard Docente - Sistema Jurídico{% endblock %}
+
+{% block extra_css %}
+<style>
+    .stats-card {
+        border-radius: 15px;
+        border: none;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+    .stats-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
+    }
+    a.text-decoration-none .stats-card:hover {
+        opacity: 0.95;
+    }
+    .caso-urgente {
+        border-left: 4px solid #dc3545;
+    }
+    .caso-nuevo {
+        border-left: 4px solid #28a745;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header del Dashboard -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h2 class="mb-1">
+                        <i class="bi bi-mortarboard text-primary"></i> Dashboard Docente
+                    </h2>
+                    <p class="text-muted mb-0">Panel de revisión y administración de casos jurídicos</p>
+                </div>
+                <div>
+                    <a href="{% url 'denuncias:lista_casos_docente' %}?asignacion=mis_casos" class="btn btn-success me-2">
+                        <i class="bi bi-person-check"></i> Mis Casos
+                    </a>
+                    <a href="{% url 'denuncias:lista_casos_docente' %}" class="btn btn-primary me-2">
+                        <i class="bi bi-list-ul"></i> Todos los Casos
+                    </a>
+                    <a href="{% url 'denuncias:dashboard' %}" class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-left"></i> Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tarjetas de Estadísticas -->
+    <div class="row mb-4">
+        <div class="col-md-3 mb-3">
+            <a href="{% url 'denuncias:lista_casos_docente' %}?status=submitted" class="text-decoration-none">
+                <div class="card stats-card bg-warning text-white">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="card-title mb-0">Casos Pendientes</h6>
+                                <h3 class="mb-0 fw-bold">{{ stats.casos_pendientes }}</h3>
+                                <small class="opacity-75">Requieren revisión</small>
+                            </div>
+                            <i class="bi bi-clock-history display-4 opacity-75"></i>
+                        </div>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        <div class="col-md-3 mb-3">
+            <a href="{% url 'denuncias:lista_casos_docente' %}?asignacion=mis_casos" class="text-decoration-none">
+                <div class="card stats-card bg-primary text-white">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="card-title mb-0">Mis Casos</h6>
+                                <h3 class="mb-0 fw-bold">{{ stats.casos_asignados }}</h3>
+                                <small class="opacity-75">Asignados a mí</small>
+                            </div>
+                            <i class="bi bi-person-check display-4 opacity-75"></i>
+                        </div>
+                    </div>
+                </div>
+            </a>
+        </div>
+        
+        <div class="col-md-3 mb-3">
+            <div class="card stats-card bg-danger text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title mb-0">Sin Revisar</h6>
+                            <h3 class="mb-0 fw-bold">{{ stats.casos_sin_revisar }}</h3>
+                            <small class="opacity-75">Necesitan atención</small>
+                        </div>
+                        <i class="bi bi-exclamation-triangle display-4 opacity-75"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3 mb-3">
+            <div class="card stats-card bg-success text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title mb-0">Feedback Dado</h6>
+                            <h3 class="mb-0 fw-bold">{{ stats.feedback_dado }}</h3>
+                            <small class="opacity-75">Total comentarios</small>
+                        </div>
+                        <i class="bi bi-chat-square-text display-4 opacity-75"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Casos Recientes para Revisión -->
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="bi bi-list-task text-primary"></i> Casos Pendientes de Revisión
+                    </h5>
+                    <a href="{% url 'denuncias:lista_casos_docente' %}?status=submitted" 
+                       class="btn btn-outline-primary btn-sm">
+                        Ver Todos
+                    </a>
+                </div>
+                <div class="card-body">
+                    {% if casos_recientes %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>NUA</th>
+                                        <th>Estudiante</th>
+                                        <th>Área</th>
+                                        <th>Estado</th>
+                                        <th>Fecha</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for caso in casos_recientes %}
+                                    <tr class="{% if caso.created_at|timesince > '3 days' %}caso-urgente{% else %}caso-nuevo{% endif %}">
+                                        <td>
+                                            <strong class="text-primary">{{ caso.nua }}</strong>
+                                        </td>
+                                        <td>
+                                            <div>
+                                                {{ caso.created_by.get_full_name|default:caso.created_by.username }}
+                                                <br>
+                                                <small class="text-muted">@{{ caso.created_by.username }}</small>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-info text-dark">
+                                                {{ caso.get_consultation_area_display }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            {% if caso.status == 'submitted' %}
+                                                <span class="badge bg-warning text-dark">Pendiente</span>
+                                            {% elif caso.status == 'in_review' %}
+                                                <span class="badge bg-primary">En Revisión</span>
+                                            {% elif caso.status == 'reviewed' %}
+                                                <span class="badge bg-success">Revisado</span>
+                                            {% elif caso.status == 'rejected' %}
+                                                <span class="badge bg-danger">Rechazado</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <small class="text-muted">
+                                                {{ caso.created_at|date:"d/m/Y" }}
+                                                <br>
+                                                {{ caso.created_at|time:"H:i" }}
+                                            </small>
+                                        </td>
+                                        <td>
+                                            <a href="{% url 'denuncias:revisar_caso' caso.id %}" 
+                                               class="btn btn-primary btn-sm">
+                                                <i class="bi bi-eye"></i> Revisar
+                                            </a>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="bi bi-check-circle text-success display-1 mb-3"></i>
+                            <h6 class="text-muted">No hay casos pendientes de revisión</h6>
+                            <p class="text-muted small">Todos los casos están al día</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Panel lateral con estadísticas adicionales -->
+        <div class="col-lg-4">
+            <!-- Estadísticas por Área -->
+            <div class="card mb-3">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="bi bi-pie-chart text-primary"></i> Casos por Área
+                    </h6>
+                </div>
+                <div class="card-body">
+                    {% for area in stats_por_area %}
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="text-capitalize">{{ area.consultation_area }}</span>
+                            <span class="badge bg-secondary">{{ area.total }}</span>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Casos Urgentes -->
+            {% if casos_urgentes %}
+            <div class="card">
+                <div class="card-header bg-danger text-white">
+                    <h6 class="mb-0">
+                        <i class="bi bi-exclamation-triangle"></i> Casos Urgentes
+                    </h6>
+                </div>
+                <div class="card-body">
+                    {% for caso in casos_urgentes %}
+                        <div class="d-flex justify-content-between align-items-center mb-2 pb-2 border-bottom">
+                            <div>
+                                <strong>{{ caso.nua }}</strong>
+                                <br>
+                                <small class="text-muted">{{ caso.created_at|timesince }} atrás</small>
+                            </div>
+                            <a href="{% url 'denuncias:revisar_caso' caso.id %}" 
+                               class="btn btn-danger btn-sm">
+                                Revisar
+                            </a>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Auto-refresh cada 5 minutos para mantener datos actualizados
+setTimeout(function() {
+    location.reload();
+}, 300000);
+
+// Confirmar antes de asignar casos
+function confirmarAsignacion(casoId, nua) {
+    if (confirm(`¿Deseas asignarte el caso ${nua}?`)) {
+        fetch(`/docente/caso/${casoId}/asignar/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                'Content-Type': 'application/json',
+            },
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Error al asignar el caso');
+            }
+        });
+    }
+}
+</script>
+{% endblock %}

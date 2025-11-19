@@ -1,0 +1,1021 @@
+{% extends "base.html" %}
+{% block title %}Paso 9: Resumen y Confirmación - Sistema Jurídico{% endblock %}
+
+{% block extra_css %}
+<style>
+  :root {
+    --brand-orange: #f97316;
+    --brand-purple: #7c3aed;
+  }
+  
+  .wizard-header {
+    background: linear-gradient(135deg, var(--brand-orange) 0%, var(--brand-purple) 100%);
+    color: white;
+    padding: 1.5rem;
+    border-radius: 10px 10px 0 0;
+  }
+  
+  .progress-bar {
+    height: 8px;
+    background: #e9ecef;
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--brand-orange), var(--brand-purple));
+    width: 100%; /* 9/9 pasos */
+    transition: width 0.3s ease;
+  }
+  
+  .summary-section {
+    background: white;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    margin-bottom: 1.5rem;
+    overflow: hidden;
+  }
+  
+  .section-header {
+    background: linear-gradient(135deg, rgba(124, 58, 237, 0.1), rgba(124, 58, 237, 0.05));
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid #e9ecef;
+    display: flex;
+    justify-content-between;
+    align-items: center;
+    transition: all 0.3s ease;
+  }
+  
+  .section-header:hover {
+    background: linear-gradient(135deg, rgba(124, 58, 237, 0.15), rgba(124, 58, 237, 0.08));
+  }
+  
+  .section-title {
+    color: var(--brand-purple);
+    font-weight: 600;
+    margin: 0;
+    display: flex;
+    align-items: center;
+  }
+  
+  .section-content {
+    padding: 1.5rem;
+  }
+  
+  .info-row {
+    display: flex;
+    margin-bottom: 0.75rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid #f8f9fa;
+  }
+  
+  .info-row:last-child {
+    margin-bottom: 0;
+    padding-bottom: 0;
+    border-bottom: none;
+  }
+  
+  .info-label {
+    font-weight: 600;
+    color: #495057;
+    width: 40%;
+    min-width: 150px;
+  }
+  
+  .info-value {
+    color: #212529;
+    flex: 1;
+  }
+  
+  .empty-value {
+    color: #6c757d;
+    font-style: italic;
+  }
+  
+  .edit-btn {
+    background: var(--brand-orange);
+    border: none;
+    color: white;
+    padding: 0.25rem 0.75rem;
+    border-radius: 4px;
+    font-size: 0.875rem;
+    text-decoration: none;
+    transition: all 0.3s ease;
+  }
+  
+  .edit-btn:hover {
+    background: #ea580c;
+    color: white;
+    transform: translateY(-1px);
+  }
+  
+  .confirmation-section {
+    background: linear-gradient(135deg, rgba(40, 167, 69, 0.1), rgba(40, 167, 69, 0.05));
+    border: 2px solid rgba(40, 167, 69, 0.2);
+    border-radius: 8px;
+    padding: 2rem;
+    text-align: center;
+    margin-bottom: 2rem;
+  }
+  
+  .signature-section {
+    background: linear-gradient(135deg, rgba(255, 193, 7, 0.1), rgba(255, 193, 7, 0.05));
+    border: 1px solid rgba(255, 193, 7, 0.3);
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+  
+  .btn-primary {
+    background: linear-gradient(135deg, var(--brand-orange) 0%, #ea580c 100%);
+    border: none;
+    padding: 15px 40px;
+    font-weight: 600;
+    font-size: 1.1rem;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .btn-primary::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    transition: left 0.5s;
+  }
+  
+  .btn-primary:hover {
+    background: linear-gradient(135deg, #ea580c 0%, var(--brand-orange) 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(249, 115, 22, 0.4);
+  }
+  
+  .btn-primary:hover::before {
+    left: 100%;
+  }
+  
+  .checkbox-custom {
+    transform: scale(1.2);
+    margin-right: 0.75rem;
+  }
+  
+  .warning-banner {
+    background: linear-gradient(135deg, rgba(220, 53, 69, 0.1), rgba(220, 53, 69, 0.05));
+    border: 1px solid rgba(220, 53, 69, 0.2);
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+  
+  .nua-display {
+    font-family: 'Courier New', monospace;
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: var(--brand-purple);
+    background: #f8f9fa;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    display: inline-block;
+  }
+  
+  .step-indicator {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #ffffff;
+    font-weight: 600;
+    background: rgba(255, 255, 255, 0.2);
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    backdrop-filter: blur(10px);
+  }
+  
+  .completion-stats {
+    background: linear-gradient(135deg, rgba(249, 115, 22, 0.1), rgba(124, 58, 237, 0.1));
+    border: 1px solid rgba(124, 58, 237, 0.2);
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+    text-align: center;
+  }
+  
+  .completion-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: var(--brand-orange);
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-weight: 600;
+    font-size: 0.875rem;
+  }
+  
+  .section-status {
+    position: absolute;
+    top: 1rem;
+    right: 4rem;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: #28a745;
+    border: 2px solid white;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  }
+  
+  .section-status.incomplete {
+    background: #ffc107;
+  }
+  
+  .section-status.missing {
+    background: #dc3545;
+  }
+  
+  @media (max-width: 768px) {
+    .info-row {
+      flex-direction: column;
+    }
+    
+    .info-label {
+      width: 100%;
+      margin-bottom: 0.25rem;
+    }
+    
+    .section-header {
+      flex-direction: column;
+      gap: 1rem;
+      text-align: center;
+    }
+  }
+  
+  .loading-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    z-index: 9999;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  .loading-content {
+    background: white;
+    padding: 2rem;
+    border-radius: 8px;
+    text-align: center;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+  <div class="row justify-content-center">
+    <div class="col-lg-10">
+      
+      <!-- Header del Wizard -->
+      <div class="card shadow-sm mb-4">
+        <div class="wizard-header">
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <h4 class="mb-1">Nueva Denuncia Jurídica</h4>
+              <p class="mb-0">Paso 9 de 9: Resumen y Confirmación</p>
+            </div>
+            <div class="text-end">
+              <small>Progreso Completo</small>
+              <div class="progress-bar mt-1" style="width: 200px;">
+                <div class="progress-fill"></div>
+              </div>
+              <div class="step-indicator mt-2">
+                <i class="bi bi-check-circle-fill"></i>
+                <span>¡Formulario Completo!</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="card-body">
+          
+          <!-- NUA Display -->
+          <div class="text-center mb-4">
+            <h5 class="mb-2">Número Único de Asesoría (NUA)</h5>
+            <div class="nua-display">{{ caso.nua }}</div>
+            <small class="text-muted">Guarde este número para futuras referencias</small>
+          </div>
+
+          <!-- Estadísticas de Completitud -->
+          <div class="completion-stats">
+            <div class="completion-badge mb-2">
+              <i class="bi bi-check-circle-fill"></i>
+              <span id="completionCounter">0 de 8</span> secciones completadas
+            </div>
+            <small class="text-muted">Revise las secciones marcadas en amarillo o rojo antes de enviar</small>
+          </div>
+
+          <!-- I. Información del Usuario -->
+          <div class="summary-section">
+            <div class="section-header">
+              <h5 class="section-title">
+                <i class="bi bi-person-circle me-2"></i>
+                I. Información del Usuario
+              </h5>
+              <a href="{% url 'denuncias:wizard_paso' paso='paso1' %}" class="edit-btn">
+                <i class="bi bi-pencil me-1"></i>Editar
+              </a>
+            </div>
+            <div class="section-content">
+              {% if usuario_asesorado %}
+                <div class="info-row">
+                  <div class="info-label">Nombre completo:</div>
+                  <div class="info-value">{{ usuario_asesorado.full_name|default:"<span class='empty-value'>No especificado</span>" }}</div>
+                </div>
+                <div class="info-row">
+                  <div class="info-label">Tipo de documento:</div>
+                  <div class="info-value">{{ usuario_asesorado.get_document_type_display|default:"<span class='empty-value'>No especificado</span>" }}</div>
+                </div>
+                <div class="info-row">
+                  <div class="info-label">Número de documento:</div>
+                  <div class="info-value">{{ usuario_asesorado.document_number|default:"<span class='empty-value'>No especificado</span>" }}</div>
+                </div>
+                <div class="info-row">
+                  <div class="info-label">Expedición:</div>
+                  <div class="info-value">{{ usuario_asesorado.document_expedition|default:"<span class='empty-value'>No especificado</span>" }}</div>
+                </div>
+                <div class="info-row">
+                  <div class="info-label">Dirección:</div>
+                  <div class="info-value">{{ usuario_asesorado.address|default:"<span class='empty-value'>No especificado</span>" }}</div>
+                </div>
+                <div class="info-row">
+                  <div class="info-label">Barrio:</div>
+                  <div class="info-value">{{ usuario_asesorado.neighborhood|default:"<span class='empty-value'>No especificado</span>" }}</div>
+                </div>
+                <div class="info-row">
+                  <div class="info-label">Ciudad:</div>
+                  <div class="info-value">{{ usuario_asesorado.city|default:"<span class='empty-value'>No especificado</span>" }}</div>
+                </div>
+                <div class="info-row">
+                  <div class="info-label">Teléfono:</div>
+                  <div class="info-value">{{ usuario_asesorado.phone|default:"<span class='empty-value'>No especificado</span>" }}</div>
+                </div>
+                <div class="info-row">
+                  <div class="info-label">WhatsApp:</div>
+                  <div class="info-value">{{ usuario_asesorado.whatsapp|default:"<span class='empty-value'>No especificado</span>" }}</div>
+                </div>
+                <div class="info-row">
+                  <div class="info-label">Correo electrónico:</div>
+                  <div class="info-value">{{ usuario_asesorado.email|default:"<span class='empty-value'>No especificado</span>" }}</div>
+                </div>
+                <div class="info-row">
+                  <div class="info-label">Tipo de vivienda:</div>
+                  <div class="info-value">{{ usuario_asesorado.get_housing_type_display|default:"<span class='empty-value'>No especificado</span>" }}</div>
+                </div>
+                <div class="info-row">
+                  <div class="info-label">Ocupación:</div>
+                  <div class="info-value">{{ usuario_asesorado.occupation|default:"<span class='empty-value'>No especificado</span>" }}</div>
+                </div>
+                <div class="info-row">
+                  <div class="info-label">Ingresos mensuales:</div>
+                  <div class="info-value">
+                    {% if usuario_asesorado.monthly_income %}
+                      ${{ usuario_asesorado.monthly_income|floatformat:0 }}
+                    {% else %}
+                      <span class="empty-value">No especificado</span>
+                    {% endif %}
+                  </div>
+                </div>
+                <div class="info-row">
+                  <div class="info-label">Estado civil:</div>
+                  <div class="info-value">{{ usuario_asesorado.get_civil_status_display|default:"<span class='empty-value'>No especificado</span>" }}</div>
+                </div>
+                <div class="info-row">
+                  <div class="info-label">Personas a cargo:</div>
+                  <div class="info-value">{{ usuario_asesorado.dependents_count|default:"<span class='empty-value'>No especificado</span>" }}</div>
+                </div>
+              {% else %}
+                <div class="alert alert-warning">
+                  <i class="bi bi-exclamation-triangle me-2"></i>
+                  No se encontró información del usuario. <a href="{% url 'denuncias:wizard_paso' paso='paso1' %}">Completar información</a>
+                </div>
+              {% endif %}
+            </div>
+          </div>
+
+          <!-- II. Actividad Económica -->
+          <div class="summary-section">
+            <div class="section-header">
+              <h5 class="section-title">
+                <i class="bi bi-briefcase me-2"></i>
+                II. Actividad Económica Principal
+              </h5>
+              <a href="{% url 'denuncias:wizard_paso' paso='paso2' %}" class="edit-btn">
+                <i class="bi bi-pencil me-1"></i>Editar
+              </a>
+            </div>
+            <div class="section-content">
+              {% if actividad_economica %}
+                <div class="info-row">
+                  <div class="info-label">Tipo de actividad:</div>
+                  <div class="info-value">{{ actividad_economica.get_activity_type_display|default:"<span class='empty-value'>No especificado</span>" }}</div>
+                </div>
+                {% if actividad_economica.activity_type == 'empleado' %}
+                  <div class="info-row">
+                    <div class="info-label">Nombre del empleador:</div>
+                    <div class="info-value">{{ actividad_economica.employer_name|default:"<span class='empty-value'>No especificado</span>" }}</div>
+                  </div>
+                {% elif actividad_economica.activity_type == 'pensionado' %}
+                  <div class="info-row">
+                    <div class="info-label">Fondo de pensión:</div>
+                    <div class="info-value">{{ actividad_economica.pension_fund|default:"<span class='empty-value'>No especificado</span>" }}</div>
+                  </div>
+                {% elif actividad_economica.activity_type == 'independiente' %}
+                  <div class="info-row">
+                    <div class="info-label">Tipo de actividad independiente:</div>
+                    <div class="info-value">{{ actividad_economica.independent_activity|default:"<span class='empty-value'>No especificado</span>" }}</div>
+                  </div>
+                {% endif %}
+              {% else %}
+                <div class="alert alert-warning">
+                  <i class="bi bi-exclamation-triangle me-2"></i>
+                  No se encontró información económica. <a href="{% url 'denuncias:wizard_paso' paso='paso2' %}">Completar información</a>
+                </div>
+              {% endif %}
+            </div>
+          </div>
+
+          <!-- III. Información Patrimonial -->
+          <div class="summary-section">
+            <div class="section-header">
+              <h5 class="section-title">
+                <i class="bi bi-house me-2"></i>
+                III. Información Patrimonial
+              </h5>
+              <a href="{% url 'denuncias:wizard_paso' paso='paso3' %}" class="edit-btn">
+                <i class="bi bi-pencil me-1"></i>Editar
+              </a>
+            </div>
+            <div class="section-content">
+              {% if info_patrimonial %}
+                <div class="info-row">
+                  <div class="info-label">Casa(s):</div>
+                  <div class="info-value">
+                    {% if info_patrimonial.tiene_casa %}
+                      Sí ({{ info_patrimonial.cantidad_casas }})
+                    {% else %}
+                      No
+                    {% endif %}
+                  </div>
+                </div>
+                <div class="info-row">
+                  <div class="info-label">Apartamento(s):</div>
+                  <div class="info-value">
+                    {% if info_patrimonial.tiene_apartamento %}
+                      Sí ({{ info_patrimonial.cantidad_apartamentos }})
+                    {% else %}
+                      No
+                    {% endif %}
+                  </div>
+                </div>
+                <div class="info-row">
+                  <div class="info-label">Local(es) comercial(es):</div>
+                  <div class="info-value">
+                    {% if info_patrimonial.tiene_local_comercial %}
+                      Sí ({{ info_patrimonial.cantidad_locales }})
+                    {% else %}
+                      No
+                    {% endif %}
+                  </div>
+                </div>
+                <div class="info-row">
+                  <div class="info-label">Vehículo(s):</div>
+                  <div class="info-value">
+                    {% if info_patrimonial.tiene_vehiculo %}
+                      Sí ({{ info_patrimonial.cantidad_vehiculos }})
+                    {% else %}
+                      No
+                    {% endif %}
+                  </div>
+                </div>
+                <div class="info-row">
+                  <div class="info-label">Otros activos:</div>
+                  <div class="info-value">
+                    {% if info_patrimonial.tiene_otros_activos %}
+                      Sí - {{ info_patrimonial.descripcion_otros_activos }}
+                    {% else %}
+                      No
+                    {% endif %}
+                  </div>
+                </div>
+              {% else %}
+                <div class="alert alert-warning">
+                  <i class="bi bi-exclamation-triangle me-2"></i>
+                  No se encontró información patrimonial. <a href="{% url 'denuncias:wizard_paso' paso='paso3' %}">Completar información</a>
+                </div>
+              {% endif %}
+            </div>
+          </div>
+
+          <!-- IV. Información Económica -->
+          <div class="summary-section">
+            <div class="section-header">
+              <h5 class="section-title">
+                <i class="bi bi-graph-up-arrow me-2"></i>
+                IV. Información Económica
+              </h5>
+              <a href="{% url 'denuncias:wizard_paso' paso='paso4' %}" class="edit-btn">
+                <i class="bi bi-pencil me-1"></i>Editar
+              </a>
+            </div>
+            <div class="section-content">
+              {% if info_economica %}
+                <div class="row">
+                  <div class="col-md-6">
+                    <h6 class="text-success mb-3"><i class="bi bi-arrow-up-circle me-1"></i>Ingresos</h6>
+                    <div class="info-row">
+                      <div class="info-label">Salariales:</div>
+                      <div class="info-value">${{ info_economica.ingresos_salariales|floatformat:0 }}</div>
+                    </div>
+                    <div class="info-row">
+                      <div class="info-label">Honorarios:</div>
+                      <div class="info-value">${{ info_economica.ingresos_honorarios|floatformat:0 }}</div>
+                    </div>
+                    <div class="info-row">
+                      <div class="info-label">Arrendamientos:</div>
+                      <div class="info-value">${{ info_economica.ingresos_arrendamientos|floatformat:0 }}</div>
+                    </div>
+                    <div class="info-row">
+                      <div class="info-label">Pensiones:</div>
+                      <div class="info-value">${{ info_economica.ingresos_pensiones|floatformat:0 }}</div>
+                    </div>
+                    <div class="info-row">
+                      <div class="info-label">Otros ingresos:</div>
+                      <div class="info-value">${{ info_economica.otros_ingresos|floatformat:0 }}</div>
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <h6 class="text-danger mb-3"><i class="bi bi-arrow-down-circle me-1"></i>Gastos</h6>
+                    <div class="info-row">
+                      <div class="info-label">Alimentación:</div>
+                      <div class="info-value">${{ info_economica.gastos_alimentacion|floatformat:0 }}</div>
+                    </div>
+                    <div class="info-row">
+                      <div class="info-label">Transporte:</div>
+                      <div class="info-value">${{ info_economica.gastos_transporte|floatformat:0 }}</div>
+                    </div>
+                    <div class="info-row">
+                      <div class="info-label">Servicios públicos:</div>
+                      <div class="info-value">${{ info_economica.gastos_servicios_publicos|floatformat:0 }}</div>
+                    </div>
+                    <div class="info-row">
+                      <div class="info-label">Arriendo:</div>
+                      <div class="info-value">${{ info_economica.gastos_arriendo|floatformat:0 }}</div>
+                    </div>
+                    <div class="info-row">
+                      <div class="info-label">Otros egresos:</div>
+                      <div class="info-value">${{ info_economica.otros_egresos|floatformat:0 }}</div>
+                    </div>
+                  </div>
+                </div>
+              {% else %}
+                <div class="alert alert-warning">
+                  <i class="bi bi-exclamation-triangle me-2"></i>
+                  No se encontró información económica. <a href="{% url 'denuncias:wizard_paso' paso='paso4' %}">Completar información</a>
+                </div>
+              {% endif %}
+            </div>
+          </div>
+
+          <!-- VI. Relación de los Hechos -->
+          <div class="summary-section">
+            <div class="section-header">
+              <h5 class="section-title">
+                <i class="bi bi-journal-text me-2"></i>
+                VI. Relación de los Hechos
+              </h5>
+              <a href="{% url 'denuncias:wizard_paso' paso='paso6' %}" class="edit-btn">
+                <i class="bi bi-pencil me-1"></i>Editar
+              </a>
+            </div>
+            <div class="section-content">
+              {% if relacion_hechos %}
+                <div class="info-row">
+                  <div class="info-label">Descripción de los hechos:</div>
+                  <div class="info-value">{{ relacion_hechos.descripcion_hechos|default:"<span class='empty-value'>No especificado</span>" }}</div>
+                </div>
+              {% else %}
+                <div class="alert alert-warning">
+                  <i class="bi bi-exclamation-triangle me-2"></i>
+                  No se encontró descripción de los hechos. <a href="{% url 'denuncias:wizard_paso' paso='paso6' %}">Completar información</a>
+                </div>
+              {% endif %}
+            </div>
+          </div>
+
+          <!-- VII. Anexos -->
+          <div class="summary-section">
+            <div class="section-header">
+              <h5 class="section-title">
+                <i class="bi bi-paperclip me-2"></i>
+                VII. Anexos Aportados
+              </h5>
+              <a href="{% url 'denuncias:wizard_paso' paso='paso7' %}" class="edit-btn">
+                <i class="bi bi-pencil me-1"></i>Editar
+              </a>
+            </div>
+            <div class="section-content">
+              {% if anexos %}
+                {% for anexo in anexos %}
+                  <div class="info-row">
+                    <div class="info-label">{{ forloop.counter }}. {{ anexo.nombre_anexo }}:</div>
+                    <div class="info-value">
+                      {{ anexo.numero_folios }} folio(s)
+                      {% if anexo.descripcion %}
+                        - {{ anexo.descripcion }}
+                      {% endif %}
+                    </div>
+                  </div>
+                {% endfor %}
+              {% else %}
+                <div class="alert alert-info">
+                  <i class="bi bi-info-circle me-2"></i>
+                  No se han adjuntado anexos.
+                </div>
+              {% endif %}
+            </div>
+          </div>
+
+          <!-- VIII. Solución del Caso -->
+          <div class="summary-section">
+            <div class="section-header">
+              <h5 class="section-title">
+                <i class="bi bi-lightbulb me-2"></i>
+                VIII. Posible Solución del Caso
+              </h5>
+              <a href="{% url 'denuncias:wizard_paso' paso='paso8' %}" class="edit-btn">
+                <i class="bi bi-pencil me-1"></i>Editar
+              </a>
+            </div>
+            <div class="section-content">
+              {% if solucion_caso %}
+                <div class="info-row">
+                  <div class="info-label">Solución propuesta:</div>
+                  <div class="info-value">{{ solucion_caso.solucion_propuesta|default:"<span class='empty-value'>No especificado</span>" }}</div>
+                </div>
+                <div class="info-row">
+                  <div class="info-label">Susceptible de conciliación:</div>
+                  <div class="info-value">
+                    {% if solucion_caso.susceptible_conciliacion %}
+                      <span class="text-success">Sí</span>
+                    {% else %}
+                      <span class="text-danger">No</span>
+                    {% endif %}
+                  </div>
+                </div>
+                <div class="info-row">
+                  <div class="info-label">Intención del usuario:</div>
+                  <div class="info-value">{{ solucion_caso.get_intencion_usuario_display|default:"<span class='empty-value'>No especificado</span>" }}</div>
+                </div>
+                <div class="info-row">
+                  <div class="info-label">Email autorizado:</div>
+                  <div class="info-value">{{ solucion_caso.email_autorizacion|default:"<span class='empty-value'>No especificado</span>" }}</div>
+                </div>
+                {% if solucion_caso.documentos_pendientes %}
+                <div class="info-row">
+                  <div class="info-label">Documentos pendientes:</div>
+                  <div class="info-value">{{ solucion_caso.documentos_pendientes }}</div>
+                </div>
+                {% endif %}
+              {% else %}
+                <div class="alert alert-warning">
+                  <i class="bi bi-exclamation-triangle me-2"></i>
+                  No se encontró información de la solución. <a href="{% url 'denuncias:wizard_paso' paso='paso8' %}">Completar información</a>
+                </div>
+              {% endif %}
+            </div>
+          </div>
+
+          <!-- Advertencia Importante -->
+          <div class="warning-banner">
+            <h6><i class="bi bi-exclamation-triangle-fill me-2"></i>Importante</h6>
+            <ul class="mb-0">
+              <li>Verifique que toda la información esté correcta antes de enviar</li>
+              <li>Una vez enviado, algunos datos no podrán modificarse</li>
+              <li>Recibirá una copia del documento en el correo autorizado</li>
+              <li>Guarde su NUA para futuras consultas</li>
+            </ul>
+          </div>
+
+          <!-- Firma Digital y Confirmación -->
+          <div class="signature-section">
+            <h5 class="mb-3"><i class="bi bi-pen me-2"></i>Confirmación y Firma Digital</h5>
+            
+            <form method="post" id="confirmationForm">
+              {% csrf_token %}
+              
+              <div class="form-check mb-3">
+                <input class="form-check-input checkbox-custom" type="checkbox" id="confirmData" name="confirm_data" required>
+                <label class="form-check-label" for="confirmData">
+                  <strong>Confirmo que toda la información proporcionada es veraz y completa</strong>
+                </label>
+              </div>
+              
+              <div class="form-check mb-3">
+                <input class="form-check-input checkbox-custom" type="checkbox" id="acceptTerms" name="accept_terms" required>
+                <label class="form-check-label" for="acceptTerms">
+                  <strong>Acepto los términos y condiciones del servicio del Consultorio Jurídico</strong>
+                </label>
+              </div>
+              
+              <div class="form-check mb-4">
+                <input class="form-check-input checkbox-custom" type="checkbox" id="authorizeProcess" name="authorize_process" required>
+                <label class="form-check-label" for="authorizeProcess">
+                  <strong>Autorizo el procesamiento de mis datos personales conforme a la ley de protección de datos</strong>
+                </label>
+              </div>
+              
+              <div class="row mb-4">
+                <div class="col-md-6">
+                  <label class="form-label">Firma del usuario (Nombre completo):</label>
+                  <input type="text" name="firma_usuario" class="form-control" 
+                         placeholder="Escriba su nombre completo como firma digital" required>
+                </div>
+                
+                <div class="col-md-6">
+                  <label class="form-label">Fecha y hora:</label>
+                  <input type="text" class="form-control" 
+                         value="{{ now|date:'d/m/Y H:i' }}" readonly>
+                </div>
+              </div>
+            </form>
+          </div>
+
+          <!-- Confirmación Final -->
+          <div class="confirmation-section">
+            <h4 class="text-success mb-3">
+              <i class="bi bi-check-circle-fill me-2"></i>
+              ¿Está listo para enviar su solicitud?
+            </h4>
+            <p class="mb-4">
+              Al hacer clic en "Enviar Solicitud", se creará oficialmente su caso en el sistema
+              y se notificará al equipo del Consultorio Jurídico.
+            </p>
+            
+            <div class="d-flex justify-content-between">
+              <a href="{% url 'denuncias:wizard_paso' paso='paso8' %}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left me-2"></i>Revisar Paso Anterior
+              </a>
+              
+              <button type="button" class="btn btn-primary" id="submitBtn" onclick="submitForm()">
+                <i class="bi bi-send me-2"></i>
+                Enviar Solicitud
+              </button>
+            </div>
+          </div>
+          
+        </div>
+      </div>
+      
+    </div>
+  </div>
+</div>
+
+<!-- Loading Overlay -->
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="loading-content">
+    <div class="spinner-border text-primary mb-3" role="status">
+      <span class="visually-hidden">Enviando...</span>
+    </div>
+    <h5>Enviando su solicitud...</h5>
+    <p class="mb-0">Por favor espere mientras procesamos su información</p>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Limpiar datos temporales del localStorage
+    for (let i = 1; i <= 9; i++) {
+        localStorage.removeItem(`wizard_paso${i}_temp`);
+    }
+    
+    // Evaluar completitud de secciones
+    evaluateCompleteness();
+});
+
+function evaluateCompleteness() {
+    const sections = document.querySelectorAll('.summary-section');
+    let completedSections = 0;
+    
+    sections.forEach(function(section, index) {
+        const header = section.querySelector('.section-header');
+        const hasContent = checkSectionContent(section);
+        
+        // Agregar indicador de estado
+        if (!header.querySelector('.section-status')) {
+            const statusIndicator = document.createElement('div');
+            statusIndicator.className = 'section-status';
+            
+            if (hasContent.complete) {
+                statusIndicator.classList.add('complete');
+                completedSections++;
+            } else if (hasContent.partial) {
+                statusIndicator.classList.add('incomplete');
+            } else {
+                statusIndicator.classList.add('missing');
+            }
+            
+            header.style.position = 'relative';
+            header.appendChild(statusIndicator);
+        }
+    });
+    
+    // Actualizar contador
+    const counter = document.getElementById('completionCounter');
+    if (counter) {
+        counter.textContent = completedSections + ' de ' + sections.length + ' secciones completadas';
+        
+        // Cambiar color según completitud
+        const badge = counter.closest('.completion-badge');
+        if (completedSections === sections.length) {
+            badge.style.background = '#28a745';
+        } else if (completedSections >= sections.length * 0.7) {
+            badge.style.background = '#ffc107';
+        } else {
+            badge.style.background = '#dc3545';
+        }
+    }
+}
+
+function checkSectionContent(section) {
+    const infoValues = section.querySelectorAll('.info-value');
+    let filledFields = 0;
+    let totalFields = 0;
+    
+    infoValues.forEach(function(value) {
+        totalFields++;
+        const text = value.textContent.trim();
+        if (text && !text.includes('No especificado') && text !== '0' && text !== '$0') {
+            filledFields++;
+        }
+    });
+    
+    // Verificar alertas de advertencia (secciones faltantes)
+    const hasWarning = section.querySelector('.alert-warning');
+    if (hasWarning) {
+        return { complete: false, partial: false };
+    }
+    
+    // Determinar completitud
+    const completion = totalFields > 0 ? filledFields / totalFields : 0;
+    return {
+        complete: completion >= 0.8,
+        partial: completion >= 0.3
+    };
+}
+
+function submitForm() {
+    const form = document.getElementById('confirmationForm');
+    const submitBtn = document.getElementById('submitBtn');
+    const loadingOverlay = document.getElementById('loadingOverlay');
+    
+    // Validar que todos los checkboxes estén marcados
+    const requiredChecks = form.querySelectorAll('input[type="checkbox"][required]');
+    let allChecked = true;
+    
+    requiredChecks.forEach(function(check) {
+        if (!check.checked) {
+            allChecked = false;
+        }
+    });
+    
+    if (!allChecked) {
+        alert('Debe aceptar todos los términos y confirmaciones para continuar');
+        return;
+    }
+    
+    // Validar firma
+    const firmaUsuario = form.querySelector('[name="firma_usuario"]').value.trim();
+    if (firmaUsuario.length < 3) {
+        alert('Debe proporcionar su firma digital (nombre completo)');
+        return;
+    }
+    
+    // Verificar completitud mínima
+    const completedSections = document.querySelectorAll('.section-status.complete').length;
+    const totalSections = document.querySelectorAll('.summary-section').length;
+    
+    if (completedSections < totalSections * 0.6) {
+        const confirmIncomplete = confirm('Algunas secciones están incompletas. ¿Está seguro de que desea continuar? Se recomienda completar al menos el 60% de las secciones.');
+        if (!confirmIncomplete) return;
+    }
+    
+    // Confirmar envío
+    if (!confirm('¿Está seguro de que desea enviar su solicitud? Esta acción no se puede deshacer.')) {
+        return;
+    }
+    
+    // Mostrar loading con animación mejorada
+    loadingOverlay.style.display = 'flex';
+    submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Enviando solicitud...';
+    submitBtn.disabled = true;
+    
+    // Agregar hidden input para indicar que es envío final
+    const hiddenInput = document.createElement('input');
+    hiddenInput.type = 'hidden';
+    hiddenInput.name = 'envio_final';
+    hiddenInput.value = 'true';
+    form.appendChild(hiddenInput);
+    
+    // Enviar formulario con delay para mejor UX
+    setTimeout(function() {
+        form.submit();
+    }, 1500);
+}
+
+// Animación para las secciones con Intersection Observer mejorado
+const observerOptions = {
+    threshold: 0.1,
+    rootMargin: '0px 0px -50px 0px'
+};
+
+const observer = new IntersectionObserver(function(entries) {
+    entries.forEach(function(entry) {
+        if (entry.isIntersecting) {
+            entry.target.style.opacity = '1';
+            entry.target.style.transform = 'translateY(0)';
+            
+            // Animar el indicador de estado
+            const statusIndicator = entry.target.querySelector('.section-status');
+            if (statusIndicator) {
+                setTimeout(function() {
+                    statusIndicator.style.transform = 'scale(1.2)';
+                    setTimeout(function() {
+                        statusIndicator.style.transform = 'scale(1)';
+                    }, 200);
+                }, 300);
+            }
+        }
+    });
+}, observerOptions);
+
+// Aplicar animaciones de entrada
+document.querySelectorAll('.summary-section').forEach(function(section) {
+    section.style.opacity = '0';
+    section.style.transform = 'translateY(20px)';
+    section.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+    observer.observe(section);
+});
+
+// Mejorar botones de editar con confirmación inteligente
+document.querySelectorAll('.edit-btn').forEach(function(btn) {
+    btn.addEventListener('click', function(e) {
+        e.preventDefault();
+        
+        const sectionTitle = this.closest('.section-header').querySelector('.section-title').textContent.trim();
+        const confirmMessage = '¿Desea editar "' + sectionTitle + '"? ' + 
+                             'Se guardará el progreso actual y podrá volver a este resumen.';
+        
+        if (confirm(confirmMessage)) {
+            // Guardar progreso actual en localStorage antes de salir
+            const formData = new FormData(document.getElementById('confirmationForm'));
+            const data = {};
+            for (let pair of formData.entries()) {
+                data[pair[0]] = pair[1];
+            }
+            localStorage.setItem('wizard_paso9_progress', JSON.stringify(data));
+            
+            window.location.href = this.href;
+        }
+    });
+});
+
+// Recuperar progreso si existe
+const savedProgress = localStorage.getItem('wizard_paso9_progress');
+if (savedProgress) {
+    try {
+        const data = JSON.parse(savedProgress);
+        Object.keys(data).forEach(function(key) {
+            const field = document.querySelector('[name="' + key + '"]');
+            if (field) {
+                if (field.type === 'checkbox') {
+                    field.checked = data[key] === 'on';
+                } else {
+                    field.value = data[key];
+                }
+            }
+        });
+        
+        // Limpiar progreso guardado
+        localStorage.removeItem('wizard_paso9_progress');
+    } catch (e) {
+        console.log('Error al recuperar progreso guardado');
+    }
+}
+</script>
+{% endblock %}

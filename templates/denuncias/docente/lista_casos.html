@@ -1,0 +1,237 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Lista de Casos - Dashboard Docente{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h2>
+                        <i class="bi bi-list-ul text-primary"></i> Lista de Casos
+                    </h2>
+                    <p class="text-muted mb-0">Gestión completa de casos jurídicos</p>
+                </div>
+                <a href="{% url 'denuncias:dashboard_docente' %}" class="btn btn-outline-primary">
+                    <i class="bi bi-arrow-left"></i> Volver al Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filtros -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-3">
+                    <label class="form-label">Estado:</label>
+                    <select name="status" class="form-select">
+                        <option value="all" {% if status_filter == 'all' %}selected{% endif %}>Todos</option>
+                        {% for value, label in status_choices %}
+                            <option value="{{ value }}" {% if status_filter == value %}selected{% endif %}>
+                                {{ label }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Área:</label>
+                    <select name="area" class="form-select">
+                        <option value="all" {% if area_filter == 'all' %}selected{% endif %}>Todas</option>
+                        {% for value, label in area_choices %}
+                            <option value="{{ value }}" {% if area_filter == value %}selected{% endif %}>
+                                {{ label }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Asignación:</label>
+                    <select name="asignacion" class="form-select">
+                        <option value="all" {% if asignacion_filter == 'all' %}selected{% endif %}>Todos</option>
+                        <option value="mis_casos" {% if asignacion_filter == 'mis_casos' %}selected{% endif %}>Mis Casos</option>
+                        <option value="sin_asignar" {% if asignacion_filter == 'sin_asignar' %}selected{% endif %}>Sin Asignar</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Buscar:</label>
+                    <input type="text" name="q" class="form-control" value="{{ busqueda }}" placeholder="NUA, estudiante...">
+                </div>
+                <div class="col-12">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-search"></i> Filtrar
+                    </button>
+                    <a href="{% url 'denuncias:lista_casos_docente' %}" class="btn btn-outline-secondary">
+                        <i class="bi bi-x-circle"></i> Limpiar
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Estadísticas Rápidas -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="alert alert-info">
+                <strong>Total Casos:</strong> {{ total_casos }}
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="alert alert-primary">
+                <strong>Mis Casos:</strong> {{ mis_casos }}
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="alert alert-warning">
+                <strong>Sin Asignar:</strong> {{ sin_asignar }}
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabla de Casos -->
+    <div class="card">
+        <div class="card-body">
+            {% if casos %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>NUA</th>
+                                <th>Estudiante</th>
+                                <th>Área</th>
+                                <th>Estado</th>
+                                <th>Asignado</th>
+                                <th>Fecha</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for caso in casos %}
+                            <tr>
+                                <td>
+                                    <strong class="text-primary">{{ caso.nua }}</strong>
+                                </td>
+                                <td>
+                                    {{ caso.created_by.get_full_name|default:caso.created_by.username }}
+                                    <br>
+                                    <small class="text-muted">@{{ caso.created_by.username }}</small>
+                                </td>
+                                <td>
+                                    <span class="badge bg-info">
+                                        {{ caso.get_consultation_area_display }}
+                                    </span>
+                                </td>
+                                <td>
+                                    {% if caso.status == 'submitted' %}
+                                        <span class="badge bg-warning text-dark">Pendiente</span>
+                                    {% elif caso.status == 'in_review' %}
+                                        <span class="badge bg-primary">En Revisión</span>
+                                    {% elif caso.status == 'reviewed' %}
+                                        <span class="badge bg-success">Revisado</span>
+                                    {% elif caso.status == 'rejected' %}
+                                        <span class="badge bg-danger">Rechazado</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">{{ caso.get_status_display }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if caso.assigned_teacher %}
+                                        <span class="text-success">
+                                            {{ caso.assigned_teacher.get_full_name|default:caso.assigned_teacher.username }}
+                                        </span>
+                                    {% else %}
+                                        <span class="text-muted">Sin asignar</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <small>{{ caso.created_at|date:"d/m/Y H:i" }}</small>
+                                </td>
+                                <td>
+                                    <a href="{% url 'denuncias:revisar_caso' caso.id %}" 
+                                       class="btn btn-primary btn-sm">
+                                        <i class="bi bi-eye"></i> Ver
+                                    </a>
+                                    {% if not caso.assigned_teacher %}
+                                        <button onclick="asignarCaso({{ caso.id }}, '{{ caso.nua }}')" 
+                                                class="btn btn-outline-success btn-sm">
+                                            <i class="bi bi-person-plus"></i> Asignar
+                                        </button>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Paginación -->
+                {% if casos.has_other_pages %}
+                <nav aria-label="Paginación de casos">
+                    <ul class="pagination justify-content-center">
+                        {% if casos.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ casos.previous_page_number }}{% if status_filter != 'all' %}&status={{ status_filter }}{% endif %}{% if area_filter != 'all' %}&area={{ area_filter }}{% endif %}{% if asignacion_filter != 'all' %}&asignacion={{ asignacion_filter }}{% endif %}{% if busqueda %}&q={{ busqueda }}{% endif %}">
+                                    Anterior
+                                </a>
+                            </li>
+                        {% endif %}
+                        
+                        <li class="page-item active">
+                            <span class="page-link">
+                                Página {{ casos.number }} de {{ casos.paginator.num_pages }}
+                            </span>
+                        </li>
+                        
+                        {% if casos.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ casos.next_page_number }}{% if status_filter != 'all' %}&status={{ status_filter }}{% endif %}{% if area_filter != 'all' %}&area={{ area_filter }}{% endif %}{% if asignacion_filter != 'all' %}&asignacion={{ asignacion_filter }}{% endif %}{% if busqueda %}&q={{ busqueda }}{% endif %}">
+                                    Siguiente
+                                </a>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+                {% endif %}
+
+            {% else %}
+                <div class="text-center py-5">
+                    <i class="bi bi-inbox display-1 text-muted"></i>
+                    <h5 class="text-muted mt-3">No se encontraron casos</h5>
+                    <p class="text-muted">Ajusta los filtros o revisa más tarde</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function asignarCaso(casoId, nua) {
+    if (confirm(`¿Deseas asignarte el caso ${nua}?`)) {
+        fetch(`/docente/caso/${casoId}/asignar/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                'Content-Type': 'application/json',
+            },
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Error al asignar el caso');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error al asignar el caso');
+        });
+    }
+}
+</script>
+{% endblock %}

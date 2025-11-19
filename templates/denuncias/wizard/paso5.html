@@ -1,0 +1,535 @@
+{% extends "base.html" %}
+{% block title %}Paso 5: Informacion de la Contraparte - Sistema Juridico{% endblock %}
+
+{% block extra_css %}
+<style>
+  :root {
+    --brand-orange: #ff6600;
+    --brand-purple: #6357ff;
+  }
+  
+  .wizard-header {
+    background: linear-gradient(135deg, var(--brand-orange) 0%, var(--brand-purple) 100%);
+    color: white;
+    padding: 1.5rem;
+    border-radius: 10px 10px 0 0;
+  }
+  
+  .progress-bar {
+    height: 8px;
+    background: #e9ecef;
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--brand-orange), var(--brand-purple));
+    width: 55.55%; /* 5/9 pasos */
+    transition: width 0.3s ease;
+  }
+  
+  .form-section {
+    background: white;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+  
+  .section-title {
+    color: var(--brand-purple);
+    font-weight: 600;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid #e9ecef;
+  }
+  
+  .entity-type-selector {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
+  
+  .entity-option {
+    flex: 1;
+    border: 2px solid #e9ecef;
+    border-radius: 8px;
+    padding: 1.5rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+  
+  .entity-option:hover {
+    border-color: var(--brand-purple);
+    background-color: rgba(99, 87, 255, 0.05);
+  }
+  
+  .entity-option.selected {
+    border-color: var(--brand-purple);
+    background-color: rgba(99, 87, 255, 0.1);
+  }
+  
+  .entity-option input[type="radio"] {
+    margin-bottom: 0.5rem;
+    transform: scale(1.2);
+  }
+  
+  .entity-icon {
+    font-size: 2.5rem;
+    color: var(--brand-purple);
+    margin-bottom: 0.5rem;
+  }
+  
+  .conditional-fields {
+    display: none;
+  }
+  
+  .conditional-fields.show {
+    display: block;
+  }
+  
+  .btn-primary {
+    background: linear-gradient(135deg, var(--brand-orange) 0%, #ff7519 100%);
+    border: none;
+    padding: 12px 30px;
+    font-weight: 600;
+  }
+  
+  .btn-primary:hover {
+    background: linear-gradient(135deg, #ff7519 0%, var(--brand-orange) 100%);
+    transform: translateY(-1px);
+  }
+  
+  .form-control:focus {
+    border-color: var(--brand-purple);
+    box-shadow: 0 0 0 0.2rem rgba(99, 87, 255, 0.25);
+  }
+  
+  .required-field::after {
+    content: " *";
+    color: #dc3545;
+  }
+  
+  .form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1rem;
+  }
+  
+  .form-grid-full {
+    grid-column: 1 / -1;
+  }
+  
+  @media (max-width: 768px) {
+    .entity-type-selector {
+      flex-direction: column;
+    }
+    
+    .form-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+  <div class="row justify-content-center">
+    <div class="col-lg-10">
+      
+      <!-- Header del Wizard -->
+      <div class="card shadow-sm mb-4">
+        <div class="wizard-header">
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <h4 class="mb-1">Nueva Denuncia Juridica</h4>
+              <p class="mb-0">Paso 5 de 9: Informacion de la Contraparte</p>
+            </div>
+            <div class="text-end">
+              <small>Progreso</small>
+              <div class="progress-bar mt-1" style="width: 200px;">
+                <div class="progress-fill"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="card-body">
+          <form method="post" id="paso5Form">
+            {% csrf_token %}
+            
+            <!-- Tipo de Contraparte -->
+            <div class="form-section">
+              <h5 class="section-title">
+                <i class="bi bi-people me-2"></i>
+                Tipo de Contraparte
+              </h5>
+              
+              <p class="text-muted mb-3">Seleccione si la contraparte es una persona natural o una organizacion:</p>
+              
+              <div class="entity-type-selector">
+                <div class="entity-option" data-type="persona">
+                  <input type="radio" name="tipo_contraparte" value="PERSONA" id="persona" required>
+                  <div>
+                    <i class="bi bi-person entity-icon"></i>
+                    <h6>Persona Natural</h6>
+                    <p class="text-muted small mb-0">Individuo particular</p>
+                  </div>
+                </div>
+                
+                <div class="entity-option" data-type="organizacion">
+                  <input type="radio" name="tipo_contraparte" value="ORGANIZACION" id="organizacion" required>
+                  <div>
+                    <i class="bi bi-building entity-icon"></i>
+                    <h6>Organizacion</h6>
+                    <p class="text-muted small mb-0">Empresa, entidad, institucion</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Información de Persona Natural -->
+            <div class="form-section conditional-fields" id="persona-fields">
+              <h5 class="section-title">
+                <i class="bi bi-person-circle me-2"></i>
+                Datos de la Persona Natural
+              </h5>
+              
+              <div class="form-grid">
+                <div class="form-grid-full">
+                  <label class="form-label required-field">Nombres y apellidos completos</label>
+                  <input type="text" name="nombre_completo" class="form-control" 
+                         placeholder="Nombres y apellidos de la persona">
+                </div>
+                
+                <div>
+                  <label class="form-label required-field">Tipo de documento</label>
+                  <select name="tipo_documento" class="form-select">
+                    <option value="">Seleccione...</option>
+                    <option value="CC">Cedula de Ciudadania</option>
+                    <option value="TI">Tarjeta de Identidad</option>
+                    <option value="CE">Cedula de Extranjeria</option>
+                    <option value="PP">Pasaporte</option>
+                    <option value="PPT">Permiso por Proteccion Temporal</option>
+                    <option value="OTRO">Otro</option>
+                  </select>
+                </div>
+                
+                <div>
+                  <label class="form-label required-field">Numero de documento</label>
+                  <input type="text" name="numero_documento" class="form-control" 
+                         placeholder="Numero sin puntos ni comas">
+                </div>
+                
+                <div>
+                  <label class="form-label">Lugar de expedicion</label>
+                  <input type="text" name="expedicion" class="form-control" 
+                         placeholder="Ciudad de expedicion">
+                </div>
+              </div>
+            </div>
+
+            <!-- Información de Organización -->
+            <div class="form-section conditional-fields" id="organizacion-fields">
+              <h5 class="section-title">
+                <i class="bi bi-building me-2"></i>
+                Datos de la Organizacion
+              </h5>
+              
+              <div class="form-grid">
+                <div class="form-grid-full">
+                  <label class="form-label required-field">Denominacion o razon social</label>
+                  <input type="text" name="razon_social" class="form-control" 
+                         placeholder="Nombre completo de la empresa u organizacion">
+                </div>
+                
+                <div>
+                  <label class="form-label">NIT</label>
+                  <input type="text" name="nit" class="form-control" 
+                         placeholder="NIT sin digito de verificacion">
+                </div>
+                
+                <div>
+                  <label class="form-label">Digito de verificacion</label>
+                  <input type="text" name="digito_verificacion" class="form-control" 
+                         placeholder="DV" maxlength="1">
+                </div>
+                
+                <div>
+                  <label class="form-label">Tipo de organizacion</label>
+                  <select name="tipo_organizacion" class="form-select">
+                    <option value="">Seleccione...</option>
+                    <option value="EMPRESA_PRIVADA">Empresa privada</option>
+                    <option value="ENTIDAD_PUBLICA">Entidad publica</option>
+                    <option value="FUNDACION">Fundacion</option>
+                    <option value="COOPERATIVA">Cooperativa</option>
+                    <option value="ASOCIACION">Asociacion</option>
+                    <option value="OTRO">Otro</option>
+                  </select>
+                </div>
+              </div>
+              
+              <div class="mt-3">
+                <label class="form-label">Representante legal</label>
+                <input type="text" name="representante_legal" class="form-control" 
+                       placeholder="Nombre del representante legal (si se conoce)">
+              </div>
+            </div>
+
+            <!-- Información de Contacto -->
+            <div class="form-section">
+              <h5 class="section-title">
+                <i class="bi bi-geo-alt me-2"></i>
+                Informacion de Contacto
+              </h5>
+              
+              <div class="form-grid">
+                <div class="form-grid-full">
+                  <label class="form-label required-field">Direccion</label>
+                  <input type="text" name="direccion" class="form-control" 
+                         placeholder="Direccion completa conocida">
+                </div>
+                
+                <div>
+                  <label class="form-label">Barrio</label>
+                  <input type="text" name="barrio" class="form-control" 
+                         placeholder="Barrio o sector">
+                </div>
+                
+                <div>
+                  <label class="form-label required-field">Ciudad</label>
+                  <input type="text" name="ciudad" class="form-control" 
+                         placeholder="Ciudad">
+                </div>
+                
+                <div>
+                  <label class="form-label">Telefono</label>
+                  <input type="tel" name="telefono" class="form-control" 
+                         placeholder="Numero de telefono">
+                </div>
+                
+                <div>
+                  <label class="form-label">Celular</label>
+                  <input type="tel" name="celular" class="form-control" 
+                         placeholder="Numero de celular">
+                </div>
+                
+                <div>
+                  <label class="form-label">Correo electronico</label>
+                  <input type="email" name="email" class="form-control" 
+                         placeholder="correo@ejemplo.com">
+                </div>
+              </div>
+            </div>
+
+            <!-- Información Adicional -->
+            <div class="form-section">
+              <h5 class="section-title">
+                <i class="bi bi-info-circle me-2"></i>
+                Informacion Adicional
+              </h5>
+              
+              <div class="row">
+                <div class="col-md-6">
+                  <label class="form-label">Relacion con la contraparte</label>
+                  <select name="relacion" class="form-select">
+                    <option value="">Seleccione...</option>
+                    <option value="LABORAL">Laboral (empleador, compañero)</option>
+                    <option value="COMERCIAL">Comercial (cliente, proveedor)</option>
+                    <option value="FAMILIAR">Familiar</option>
+                    <option value="VECINO">Vecino</option>
+                    <option value="ARRENDADOR">Arrendador/Arrendatario</option>
+                    <option value="NINGUNA">Ninguna relacion previa</option>
+                    <option value="OTRA">Otra</option>
+                  </select>
+                </div>
+                
+                <div class="col-md-6">
+                  <label class="form-label">Como conoce los datos?</label>
+                  <select name="origen_datos" class="form-select">
+                    <option value="">Seleccione...</option>
+                    <option value="CONOCIMIENTO_PERSONAL">Conocimiento personal</option>
+                    <option value="DOCUMENTOS">Documentos o contratos</option>
+                    <option value="TERCEROS">Informacion de terceros</option>
+                    <option value="INTERNET">Busqueda en internet</option>
+                    <option value="OTRO">Otro</option>
+                  </select>
+                </div>
+              </div>
+              
+              <div class="mt-3">
+                <label class="form-label">Observaciones adicionales</label>
+                <textarea name="observaciones" class="form-control" rows="3"
+                          placeholder="Informacion adicional sobre la contraparte que considere relevante..."></textarea>
+              </div>
+            </div>
+
+            <!-- Botones de navegación -->
+            <div class="d-flex justify-content-between mt-4">
+              <a href="{% url 'denuncias:wizard_paso' paso='paso4' %}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left me-2"></i>Paso Anterior
+              </a>
+              
+              <button type="submit" class="btn btn-primary">
+                Continuar al Paso 6
+                <i class="bi bi-arrow-right ms-2"></i>
+              </button>
+            </div>
+            
+          </form>
+        </div>
+      </div>
+      
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('paso5Form');
+    const submitBtn = form.querySelector('button[type="submit"]');
+    const radioButtons = form.querySelectorAll('input[type="radio"]');
+    const entityOptions = form.querySelectorAll('.entity-option');
+    
+    // Manejar seleccion de tipo de contraparte
+    radioButtons.forEach(radio => {
+        radio.addEventListener('change', function() {
+            // Resetear todas las opciones
+            entityOptions.forEach(option => {
+                option.classList.remove('selected');
+            });
+            
+            // Ocultar todos los campos condicionales
+            document.querySelectorAll('.conditional-fields').forEach(field => {
+                field.classList.remove('show');
+                // Limpiar campos no seleccionados
+                const inputs = field.querySelectorAll('input, select, textarea');
+                inputs.forEach(input => {
+                    input.value = '';
+                    input.removeAttribute('required');
+                });
+            });
+            
+            // Activar opcion seleccionada
+            const selectedOption = this.closest('.entity-option');
+            selectedOption.classList.add('selected');
+            
+            // Mostrar campos correspondientes
+            const tipo = this.value.toLowerCase();
+            const fieldsToShow = document.getElementById(tipo + '-fields');
+            if (fieldsToShow) {
+                fieldsToShow.classList.add('show');
+                
+                // Hacer campos requeridos
+                const requiredInputs = fieldsToShow.querySelectorAll('[name="nombre_completo"], [name="razon_social"], [name="tipo_documento"], [name="numero_documento"]');
+                requiredInputs.forEach(input => {
+                    if (input.name === 'nombre_completo' && tipo === 'persona') {
+                        input.setAttribute('required', 'required');
+                    } else if (input.name === 'razon_social' && tipo === 'organizacion') {
+                        input.setAttribute('required', 'required');
+                    } else if (tipo === 'persona' && (input.name === 'tipo_documento' || input.name === 'numero_documento')) {
+                        input.setAttribute('required', 'required');
+                    }
+                });
+            }
+        });
+    });
+    
+    // Click en la opcion completa selecciona el radio
+    entityOptions.forEach(option => {
+        option.addEventListener('click', function(e) {
+            if (e.target.type !== 'radio' && e.target.tagName !== 'INPUT') {
+                const radio = this.querySelector('input[type="radio"]');
+                radio.checked = true;
+                radio.dispatchEvent(new Event('change'));
+            }
+        });
+    });
+    
+    // Validacion del formulario
+    form.addEventListener('submit', function(e) {
+        const tipoSeleccionado = form.querySelector('input[name="tipo_contraparte"]:checked');
+        
+        if (!tipoSeleccionado) {
+            e.preventDefault();
+            alert('Por favor seleccione el tipo de contraparte');
+            return;
+        }
+        
+        // Validar campos requeridos del tipo seleccionado
+        const fieldsVisible = form.querySelector('.conditional-fields.show');
+        if (fieldsVisible) {
+            const requiredFields = fieldsVisible.querySelectorAll('[required]');
+            let hasErrors = false;
+            
+            requiredFields.forEach(field => {
+                if (!field.value.trim()) {
+                    field.classList.add('is-invalid');
+                    hasErrors = true;
+                } else {
+                    field.classList.remove('is-invalid');
+                }
+            });
+            
+            if (hasErrors) {
+                e.preventDefault();
+                alert('Por favor complete todos los campos obligatorios');
+                return;
+            }
+        }
+        
+        // Validar direccion (siempre requerida)
+        const direccion = form.querySelector('[name="direccion"]');
+        const ciudad = form.querySelector('[name="ciudad"]');
+        
+        if (!direccion.value.trim() || !ciudad.value.trim()) {
+            e.preventDefault();
+            alert('Por favor ingrese al menos la direccion y ciudad de la contraparte');
+            direccion.classList.add('is-invalid');
+            ciudad.classList.add('is-invalid');
+            return;
+        }
+        
+        // Loading state
+        submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Guardando...';
+        submitBtn.disabled = true;
+    });
+    
+    // Auto-guardar progreso
+    function autoSave() {
+        const formData = new FormData(form);
+        const data = Object.fromEntries(formData.entries());
+        localStorage.setItem('wizard_paso5_temp', JSON.stringify(data));
+    }
+    
+    setInterval(autoSave, 30000);
+    
+    // Cargar datos guardados
+    const savedData = localStorage.getItem('wizard_paso5_temp');
+    if (savedData) {
+        try {
+            const data = JSON.parse(savedData);
+            Object.keys(data).forEach(key => {
+                const field = form.querySelector(`[name="${key}"]`);
+                if (field) {
+                    if (field.type === 'radio') {
+                        if (field.value === data[key]) {
+                            field.checked = true;
+                            field.dispatchEvent(new Event('change'));
+                        }
+                    } else {
+                        field.value = data[key];
+                    }
+                }
+            });
+        } catch (e) {
+            console.log('No hay datos guardados validos');
+        }
+    }
+});
+</script>
+{% endblock %}

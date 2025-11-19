@@ -1,0 +1,163 @@
+{% extends "base.html" %}
+{% block title %}Paso 7: Anexos del Usuario - Sistema Juridico{% endblock %}
+
+{% block extra_css %}
+<style>
+  :root {
+    --brand-orange: #f97316;
+    --brand-purple: #7c3aed;
+  }
+  
+  .wizard-header {
+    background: linear-gradient(135deg, var(--brand-orange) 0%, var(--brand-purple) 100%);
+    color: white;
+    padding: 1.5rem;
+    border-radius: 10px 10px 0 0;
+  }
+  
+  .progress-bar {
+    height: 8px;
+    background: #e9ecef;
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--brand-orange), var(--brand-purple));
+    width: 77.77%;
+    transition: width 0.3s ease;
+  }
+  
+  .form-section {
+    background: white;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+  
+  .section-title {
+    color: var(--brand-purple);
+    font-weight: 600;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid #e9ecef;
+  }
+  
+  .btn-primary {
+    background: linear-gradient(135deg, var(--brand-orange) 0%, #ea580c 100%);
+    border: none;
+    padding: 12px 30px;
+    font-weight: 600;
+  }
+  
+  .btn-primary:hover {
+    background: linear-gradient(135deg, #ea580c 0%, var(--brand-orange) 100%);
+    transform: translateY(-1px);
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+  <div class="row justify-content-center">
+    <div class="col-lg-10">
+      
+      <!-- Header del Wizard -->
+      <div class="card shadow-sm mb-4">
+        <div class="wizard-header">
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <h4 class="mb-1">Nueva Denuncia Juridica</h4>
+              <p class="mb-0">Paso 7 de 9: Anexos del Usuario</p>
+            </div>
+            <div class="text-end">
+              <small>Progreso</small>
+              <div class="progress-bar mt-1" style="width: 200px;">
+                <div class="progress-fill"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="card-body">
+          <form method="post" enctype="multipart/form-data" id="paso7Form">
+            {% csrf_token %}
+            
+            <!-- Información sobre anexos -->
+            <div class="alert alert-info">
+              <h6><i class="bi bi-info-circle me-2"></i>Informacion importante</h6>
+              <p class="mb-0">Los anexos son documentos que respaldan su caso. Aunque no son obligatorios, aportar documentos relevantes puede fortalecer significativamente su consulta juridica.</p>
+            </div>
+
+            <!-- Subida de archivos simplificada -->
+            <div class="form-section">
+              <h5 class="section-title">
+                <i class="bi bi-cloud-upload me-2"></i>
+                Subir Documentos
+              </h5>
+              
+              <div class="mb-3">
+                <label class="form-label">Seleccionar archivos</label>
+                <input type="file" name="anexos" class="form-control" multiple 
+                       accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.xls,.xlsx">
+                <small class="text-muted">Formatos permitidos: PDF, JPG, PNG, DOC, DOCX, XLS, XLSX</small>
+              </div>
+            </div>
+
+            <!-- Descripción de anexos -->
+            <div class="form-section">
+              <h5 class="section-title">
+                <i class="bi bi-journal-text me-2"></i>
+                Descripcion de los Anexos
+              </h5>
+              
+              <div class="mb-3">
+                <label class="form-label">Numero total de folios de los anexos</label>
+                <input type="number" name="total_folios" class="form-control" 
+                       placeholder="0" min="0" max="1000" value="0">
+                <small class="text-muted">Indique el numero total de paginas de todos los documentos</small>
+              </div>
+              
+              <div class="mb-3">
+                <label class="form-label">Descripcion general de los anexos</label>
+                <textarea name="descripcion_anexos" class="form-control" rows="4"
+                          placeholder="Describa brevemente que documentos esta aportando y como se relacionan con su caso..."></textarea>
+              </div>
+            </div>
+
+            <!-- Botones de navegación -->
+            <div class="d-flex justify-content-between mt-4">
+              <a href="{% url 'denuncias:wizard_paso' paso='paso6' %}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left me-2"></i>Paso Anterior
+              </a>
+              
+              <button type="submit" class="btn btn-primary">
+                Continuar al Paso 8
+                <i class="bi bi-arrow-right ms-2"></i>
+              </button>
+            </div>
+            
+          </form>
+        </div>
+      </div>
+      
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('paso7Form');
+    const submitBtn = form.querySelector('button[type="submit"]');
+    
+    form.addEventListener('submit', function(e) {
+        submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Guardando...';
+        submitBtn.disabled = true;
+    });
+});
+</script>
+{% endblock %}
