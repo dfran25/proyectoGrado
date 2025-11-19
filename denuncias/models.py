@@ -133,6 +133,16 @@ class ConsultorioJuridico(models.Model):
         related_name="consultorio_creados"  # 👈 distinto
     )
 
+    # Campo para documento firmado
+    documento_firmado = models.FileField(
+        "Documento firmado",
+        upload_to="documentos_firmados/%Y/%m/",
+        blank=True,
+        null=True
+    )
+    firma_usuario = models.CharField("Firma digital del usuario", max_length=200, blank=True)
+    fecha_firma = models.DateTimeField("Fecha de firma", blank=True, null=True)
+
     class Meta:
         verbose_name = "Caso Consultorio Jurídico"
         verbose_name_plural = "Casos Consultorio Jurídico"

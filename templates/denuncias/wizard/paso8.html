@@ -229,9 +229,8 @@
                   <label class="form-label required-field mb-0">
                     Describa la solucion que considera mas apropiada para su caso
                   </label>
-                  <button type="button" class="btn btn-sm btn-outline-info" id="btnAsistenteIA" disabled title="Próximamente disponible">
+                  <button type="button" class="btn btn-sm btn-outline-info" id="btnAsistenteIA" title="Obtener sugerencias de artículos legales">
                     <i class="bi bi-robot me-1"></i> Asistente Legal IA
-                    <span class="badge bg-warning text-dark ms-1">Próximamente</span>
                   </button>
                 </div>
                 <textarea name="solucion_propuesta" class="form-control solution-textarea"
@@ -470,6 +469,70 @@
     </div>
   </div>
 </div>
+
+<!-- Modal Asistente Legal IA -->
+<div class="modal fade" id="modalAsistenteIA" tabindex="-1" aria-labelledby="modalAsistenteIALabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header bg-info text-white">
+        <h5 class="modal-title" id="modalAsistenteIALabel">
+          <i class="bi bi-robot me-2"></i>Asistente Legal IA
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <!-- Loading state -->
+        <div id="iaLoading" class="text-center py-5">
+          <div class="spinner-border text-info mb-3" role="status">
+            <span class="visually-hidden">Analizando...</span>
+          </div>
+          <p class="text-muted">Analizando los hechos de su caso...</p>
+          <small class="text-muted">Esto puede tomar unos segundos</small>
+        </div>
+
+        <!-- Results -->
+        <div id="iaResultados" style="display: none;">
+          <!-- Análisis -->
+          <div class="mb-4">
+            <h6 class="text-info"><i class="bi bi-search me-2"></i>Análisis del Caso</h6>
+            <p id="iaAnalisis" class="bg-light p-3 rounded"></p>
+          </div>
+
+          <!-- Artículos sugeridos -->
+          <div class="mb-4">
+            <h6 class="text-info"><i class="bi bi-book me-2"></i>Artículos Legales Relevantes</h6>
+            <div id="iaArticulos" class="list-group">
+              <!-- Se llenará dinámicamente -->
+            </div>
+          </div>
+
+          <!-- Recomendaciones -->
+          <div>
+            <h6 class="text-info"><i class="bi bi-lightbulb me-2"></i>Recomendaciones</h6>
+            <ul id="iaRecomendaciones" class="list-group list-group-flush">
+              <!-- Se llenará dinámicamente -->
+            </ul>
+          </div>
+        </div>
+
+        <!-- Error state -->
+        <div id="iaError" style="display: none;">
+          <div class="alert alert-danger">
+            <i class="bi bi-exclamation-triangle me-2"></i>
+            <span id="iaErrorMsg"></span>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <small class="text-muted me-auto">
+          <i class="bi bi-info-circle me-1"></i>
+          Esta es una sugerencia automatizada. Consulte siempre con un profesional.
+        </small>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+      </div>
+    </div>
+  </div>
+</div>
 {% endblock %}
 
 {% block extra_js %}
@@ -557,11 +620,113 @@ document.addEventListener('DOMContentLoaded', function() {
     solutionTextarea.dispatchEvent(new Event('input'));
     observacionesTextarea.dispatchEvent(new Event('input'));
 
-    // Botón de IA - Mostrar mensaje próximamente
+    // Botón de IA - Funcionalidad completa
     const btnIA = document.getElementById('btnAsistenteIA');
     if (btnIA) {
-        btnIA.addEventListener('click', function() {
-            alert('🤖 Asistente Legal IA\n\nEsta funcionalidad estará disponible próximamente.\n\nPodrá obtener sugerencias basadas en:\n- Relación de hechos\n- Área jurídica del caso\n- Legislación colombiana vigente\n- Tips y recomendaciones legales');
+        btnIA.addEventListener('click', async function() {
+            // Obtener los hechos del caso (del paso 6, almacenado en localStorage o desde el servidor)
+            const solucionTexto = document.querySelector('[name="solucion_propuesta"]').value;
+
+            // Intentar obtener los hechos guardados
+            let hechos = '';
+            const savedData = localStorage.getItem('wizard_paso6_temp');
+            if (savedData) {
+                try {
+                    const data = JSON.parse(savedData);
+                    hechos = data.descripcion_hechos || '';
+                } catch (e) {
+                    console.log('No se encontraron hechos guardados');
+                }
+            }
+
+            // Si no hay hechos, pedir al usuario que los describa
+            if (!hechos) {
+                hechos = prompt('Por favor, describa brevemente los hechos de su caso para obtener sugerencias legales:');
+                if (!hechos) {
+                    return;
+                }
+            }
+
+            // Mostrar modal
+            const modal = new bootstrap.Modal(document.getElementById('modalAsistenteIA'));
+            modal.show();
+
+            // Mostrar loading
+            document.getElementById('iaLoading').style.display = 'block';
+            document.getElementById('iaResultados').style.display = 'none';
+            document.getElementById('iaError').style.display = 'none';
+
+            try {
+                const response = await fetch("{% url 'denuncias:asistente_legal_ia' %}", {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    },
+                    body: JSON.stringify({
+                        hechos: hechos,
+                        area_juridica: '{{ caso.get_consultation_area_display|default:"No especificada" }}'
+                    })
+                });
+
+                const result = await response.json();
+
+                document.getElementById('iaLoading').style.display = 'none';
+
+                if (result.error) {
+                    document.getElementById('iaError').style.display = 'block';
+                    document.getElementById('iaErrorMsg').textContent = result.error;
+                    return;
+                }
+
+                // Mostrar resultados
+                const data = result.data;
+                document.getElementById('iaResultados').style.display = 'block';
+
+                // Análisis
+                document.getElementById('iaAnalisis').textContent = data.analisis || 'Sin análisis disponible';
+
+                // Artículos
+                const articulosContainer = document.getElementById('iaArticulos');
+                articulosContainer.innerHTML = '';
+                if (data.articulos && data.articulos.length > 0) {
+                    data.articulos.forEach(art => {
+                        const item = document.createElement('div');
+                        item.className = 'list-group-item';
+                        item.innerHTML = `
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <h6 class="mb-1">${art.codigo} - Art. ${art.articulo}</h6>
+                                    <p class="mb-0 small text-muted">${art.descripcion}</p>
+                                </div>
+                            </div>
+                        `;
+                        articulosContainer.appendChild(item);
+                    });
+                } else {
+                    articulosContainer.innerHTML = '<p class="text-muted">No se encontraron artículos específicos</p>';
+                }
+
+                // Recomendaciones
+                const recomendacionesContainer = document.getElementById('iaRecomendaciones');
+                recomendacionesContainer.innerHTML = '';
+                if (data.recomendaciones && data.recomendaciones.length > 0) {
+                    data.recomendaciones.forEach(rec => {
+                        const item = document.createElement('li');
+                        item.className = 'list-group-item';
+                        item.innerHTML = `<i class="bi bi-check2 text-success me-2"></i>${rec}`;
+                        recomendacionesContainer.appendChild(item);
+                    });
+                } else {
+                    recomendacionesContainer.innerHTML = '<li class="list-group-item text-muted">Sin recomendaciones adicionales</li>';
+                }
+
+            } catch (error) {
+                document.getElementById('iaLoading').style.display = 'none';
+                document.getElementById('iaError').style.display = 'block';
+                document.getElementById('iaErrorMsg').textContent = 'Error de conexión. Por favor intente nuevamente.';
+                console.error('Error:', error);
+            }
         });
     }
 });

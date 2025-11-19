@@ -710,6 +710,56 @@
             </ul>
           </div>
 
+          <!-- Sección de Documento para Firma Manual -->
+          <div class="signature-section mb-4" style="background: linear-gradient(135deg, rgba(124, 58, 237, 0.1), rgba(124, 58, 237, 0.05)); border: 1px solid rgba(124, 58, 237, 0.3);">
+            <h5 class="mb-3"><i class="bi bi-file-earmark-pdf me-2"></i>Documento para Firma Manual</h5>
+            <p class="text-muted mb-3">
+              Descargue el documento PDF de su solicitud, imprímalo, fírmelo manualmente y luego suba el documento escaneado.
+            </p>
+
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <div class="card h-100 border-primary">
+                  <div class="card-body text-center">
+                    <i class="bi bi-download text-primary" style="font-size: 2rem;"></i>
+                    <h6 class="mt-2">Paso 1: Descargar PDF</h6>
+                    <p class="small text-muted">Descargue el documento con línea de firma</p>
+                    <a href="{% url 'denuncias:generar_pdf_solicitud' nua=caso.nua %}" class="btn btn-outline-primary">
+                      <i class="bi bi-file-pdf me-1"></i>Descargar PDF
+                    </a>
+                  </div>
+                </div>
+              </div>
+
+              <div class="col-md-6 mb-3">
+                <div class="card h-100 border-success">
+                  <div class="card-body text-center">
+                    <i class="bi bi-upload text-success" style="font-size: 2rem;"></i>
+                    <h6 class="mt-2">Paso 2: Subir Documento Firmado</h6>
+                    <p class="small text-muted">Suba el documento escaneado con su firma</p>
+                    <input type="file" id="documentoFirmado" class="form-control form-control-sm mb-2"
+                           accept=".pdf,.jpg,.jpeg,.png" style="display: none;">
+                    <button type="button" class="btn btn-outline-success" onclick="document.getElementById('documentoFirmado').click();">
+                      <i class="bi bi-cloud-upload me-1"></i>Seleccionar Archivo
+                    </button>
+                    <div id="uploadStatus" class="mt-2 small"></div>
+                    {% if caso.documento_firmado %}
+                    <div class="mt-2">
+                      <span class="badge bg-success"><i class="bi bi-check-circle me-1"></i>Documento firmado cargado</span>
+                    </div>
+                    {% endif %}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="alert alert-info small mt-2 mb-0">
+              <i class="bi bi-info-circle me-1"></i>
+              <strong>Instrucciones:</strong> Imprima el PDF, firme en el espacio indicado, escanee el documento y súbalo aquí.
+              Formatos permitidos: PDF, JPG, PNG (máx. 10MB)
+            </div>
+          </div>
+
           <!-- Firma Digital y Confirmación -->
           <div class="signature-section">
             <h5 class="mb-3"><i class="bi bi-pen me-2"></i>Confirmación y Firma Digital</h5>
@@ -803,9 +853,59 @@ document.addEventListener('DOMContentLoaded', function() {
     for (let i = 1; i <= 9; i++) {
         localStorage.removeItem(`wizard_paso${i}_temp`);
     }
-    
+
     // Evaluar completitud de secciones
     evaluateCompleteness();
+
+    // Manejar subida de documento firmado
+    const fileInput = document.getElementById('documentoFirmado');
+    if (fileInput) {
+        fileInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const statusDiv = document.getElementById('uploadStatus');
+            const maxSize = 10 * 1024 * 1024; // 10MB
+
+            // Validar tamaño
+            if (file.size > maxSize) {
+                statusDiv.innerHTML = '<span class="text-danger"><i class="bi bi-exclamation-circle me-1"></i>El archivo excede 10MB</span>';
+                return;
+            }
+
+            // Validar tipo
+            const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png'];
+            if (!allowedTypes.includes(file.type)) {
+                statusDiv.innerHTML = '<span class="text-danger"><i class="bi bi-exclamation-circle me-1"></i>Tipo no permitido</span>';
+                return;
+            }
+
+            // Mostrar progreso
+            statusDiv.innerHTML = '<span class="text-info"><i class="bi bi-hourglass-split me-1"></i>Subiendo...</span>';
+
+            // Subir archivo
+            const formData = new FormData();
+            formData.append('documento_firmado', file);
+            formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+
+            fetch("{% url 'denuncias:subir_documento_firmado' nua=caso.nua %}", {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    statusDiv.innerHTML = '<span class="text-success"><i class="bi bi-check-circle me-1"></i>' + data.message + '</span>';
+                } else {
+                    statusDiv.innerHTML = '<span class="text-danger"><i class="bi bi-exclamation-circle me-1"></i>' + data.error + '</span>';
+                }
+            })
+            .catch(error => {
+                statusDiv.innerHTML = '<span class="text-danger"><i class="bi bi-exclamation-circle me-1"></i>Error al subir el archivo</span>';
+                console.error('Error:', error);
+            });
+        });
+    }
 });
 
 function evaluateCompleteness() {
