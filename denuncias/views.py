@@ -842,7 +842,11 @@ def asistente_legal_ia(request):
 
         # Importar OpenAI
         from openai import OpenAI
-        client = OpenAI(api_key=api_key)
+        import httpx
+
+        # Crear cliente httpx sin proxies para evitar error en cPanel
+        http_client = httpx.Client(proxy=None)
+        client = OpenAI(api_key=api_key, http_client=http_client)
 
         # Crear el prompt para el análisis legal
         prompt = f"""Eres un asistente legal experto en derecho colombiano para el Consultorio Jurídico de la Universidad Autónoma de Bucaramanga.
