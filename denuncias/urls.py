@@ -13,6 +13,9 @@ urlpatterns = [
     path('wizard/exito/<str:nua>/', views.wizard_exito, name='wizard_exito'),# Agregar estas líneas a tu urls.py
    path('reportes/casos-pdf/', views.generar_reporte_casos, name='reporte_casos_pdf'),
     path('reportes/casos-excel/', views.generar_reporte_excel, name='reporte_casos_excel'),
+    path('solicitud/<str:nua>/pdf/', views.generar_pdf_solicitud, name='generar_pdf_solicitud'),
+    path('solicitud/<str:nua>/subir-firmado/', views.subir_documento_firmado, name='subir_documento_firmado'),
+    path('api/asistente-legal-ia/', views.asistente_legal_ia, name='asistente_legal_ia'),
     
      # URLs  PARA DOCENTE
   # =================== URLs DASHBOARD DOCENTE ===================

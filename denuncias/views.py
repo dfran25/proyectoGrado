@@ -562,6 +562,367 @@ def generar_reporte_casos(request):
     return response
 
 @login_required
+def generar_pdf_solicitud(request, nua):
+    """Generar PDF de una solicitud individual con línea de firma"""
+    from reportlab.pdfgen import canvas
+    from reportlab.lib.pagesizes import A4
+    from reportlab.lib import colors
+    from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+    from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+    from reportlab.lib.units import inch, cm
+    import io
+    from datetime import datetime
+
+    # Obtener el caso
+    caso = get_object_or_404(ConsultorioJuridico, nua=nua, created_by=request.user)
+
+    # Obtener datos relacionados
+    try:
+        usuario_asesorado = UsuarioAsesorado.objects.get(caso=caso)
+    except UsuarioAsesorado.DoesNotExist:
+        usuario_asesorado = None
+
+    try:
+        actividad_economica = ActividadEconomica.objects.get(caso=caso)
+    except ActividadEconomica.DoesNotExist:
+        actividad_economica = None
+
+    try:
+        info_patrimonial = InformacionPatrimonial.objects.get(caso=caso)
+    except InformacionPatrimonial.DoesNotExist:
+        info_patrimonial = None
+
+    try:
+        info_economica = InformacionEconomica.objects.get(caso=caso)
+    except InformacionEconomica.DoesNotExist:
+        info_economica = None
+
+    try:
+        relacion_hechos = RelacionHechos.objects.get(caso=caso)
+    except RelacionHechos.DoesNotExist:
+        relacion_hechos = None
+
+    try:
+        solucion_caso = SolucionCaso.objects.get(caso=caso)
+    except SolucionCaso.DoesNotExist:
+        solucion_caso = None
+
+    anexos = AnexoUsuario.objects.filter(caso=caso)
+
+    # Crear el PDF
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="solicitud_{nua}.pdf"'
+
+    buffer = io.BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=A4, topMargin=1*cm, bottomMargin=2*cm)
+
+    # Estilos
+    styles = getSampleStyleSheet()
+    title_style = ParagraphStyle(
+        'CustomTitle',
+        parent=styles['Heading1'],
+        fontSize=16,
+        spaceAfter=20,
+        alignment=1,
+        textColor=colors.HexColor('#7c3aed')
+    )
+    section_style = ParagraphStyle(
+        'SectionTitle',
+        parent=styles['Heading2'],
+        fontSize=12,
+        spaceBefore=15,
+        spaceAfter=10,
+        textColor=colors.HexColor('#f97316')
+    )
+    normal_style = ParagraphStyle(
+        'CustomNormal',
+        parent=styles['Normal'],
+        fontSize=9,
+        spaceAfter=5
+    )
+
+    story = []
+
+    # Título
+    story.append(Paragraph("CONSULTORIO JURÍDICO UNAB", title_style))
+    story.append(Paragraph("SOLICITUD DE ASESORÍA JURÍDICA", title_style))
+    story.append(Spacer(1, 10))
+
+    # Info del caso
+    story.append(Paragraph(f"<b>NUA:</b> {caso.nua}", normal_style))
+    story.append(Paragraph(f"<b>Fecha:</b> {caso.consultation_date.strftime('%d/%m/%Y')}", normal_style))
+    story.append(Paragraph(f"<b>Área:</b> {caso.get_consultation_area_display()}", normal_style))
+    story.append(Spacer(1, 15))
+
+    # I. Información del Usuario
+    story.append(Paragraph("I. INFORMACIÓN DEL USUARIO", section_style))
+    if usuario_asesorado:
+        info_data = [
+            ['Nombre completo:', usuario_asesorado.full_name or 'No especificado'],
+            ['Documento:', f"{usuario_asesorado.get_document_type_display()} {usuario_asesorado.document_number}"],
+            ['Dirección:', usuario_asesorado.address or 'No especificado'],
+            ['Ciudad:', usuario_asesorado.city or 'No especificado'],
+            ['Teléfono:', usuario_asesorado.phone or 'No especificado'],
+            ['Email:', usuario_asesorado.email or 'No especificado'],
+        ]
+        table = Table(info_data, colWidths=[4*cm, 12*cm])
+        table.setStyle(TableStyle([
+            ('FONTSIZE', (0, 0), (-1, -1), 8),
+            ('FONTNAME', (0, 0), (0, -1), 'Helvetica-Bold'),
+            ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 3),
+        ]))
+        story.append(table)
+    else:
+        story.append(Paragraph("No se encontró información del usuario", normal_style))
+
+    # II. Actividad Económica
+    story.append(Paragraph("II. ACTIVIDAD ECONÓMICA", section_style))
+    if actividad_economica:
+        story.append(Paragraph(f"<b>Tipo:</b> {actividad_economica.get_activity_type_display()}", normal_style))
+        if actividad_economica.employer_name:
+            story.append(Paragraph(f"<b>Empleador:</b> {actividad_economica.employer_name}", normal_style))
+    else:
+        story.append(Paragraph("No se encontró información económica", normal_style))
+
+    # III. Información Patrimonial
+    story.append(Paragraph("III. INFORMACIÓN PATRIMONIAL", section_style))
+    if info_patrimonial:
+        patrimonio = []
+        if info_patrimonial.tiene_casa:
+            patrimonio.append(f"Casa(s): {info_patrimonial.cantidad_casas}")
+        if info_patrimonial.tiene_vehiculo:
+            patrimonio.append(f"Vehículo(s): {info_patrimonial.cantidad_vehiculos}")
+        if patrimonio:
+            story.append(Paragraph(", ".join(patrimonio), normal_style))
+        else:
+            story.append(Paragraph("Sin bienes declarados", normal_style))
+    else:
+        story.append(Paragraph("No se encontró información patrimonial", normal_style))
+
+    # IV. Información Económica
+    story.append(Paragraph("IV. INFORMACIÓN ECONÓMICA", section_style))
+    if info_economica:
+        total_ingresos = (info_economica.ingresos_salariales + info_economica.ingresos_honorarios +
+                        info_economica.ingresos_arrendamientos + info_economica.ingresos_pensiones +
+                        info_economica.otros_ingresos)
+        total_gastos = (info_economica.gastos_alimentacion + info_economica.gastos_transporte +
+                       info_economica.gastos_servicios_publicos + info_economica.gastos_arriendo +
+                       info_economica.otros_egresos)
+        story.append(Paragraph(f"<b>Total Ingresos:</b> ${total_ingresos:,.0f}", normal_style))
+        story.append(Paragraph(f"<b>Total Gastos:</b> ${total_gastos:,.0f}", normal_style))
+    else:
+        story.append(Paragraph("No se encontró información económica", normal_style))
+
+    # VI. Relación de los Hechos
+    story.append(Paragraph("VI. RELACIÓN DE LOS HECHOS", section_style))
+    if relacion_hechos and relacion_hechos.descripcion_hechos:
+        story.append(Paragraph(relacion_hechos.descripcion_hechos, normal_style))
+    else:
+        story.append(Paragraph("No se describieron los hechos", normal_style))
+
+    # VII. Anexos
+    story.append(Paragraph("VII. ANEXOS APORTADOS", section_style))
+    if anexos:
+        for i, anexo in enumerate(anexos, 1):
+            story.append(Paragraph(f"{i}. {anexo.nombre_anexo} ({anexo.numero_folios} folios)", normal_style))
+    else:
+        story.append(Paragraph("No se adjuntaron anexos", normal_style))
+
+    # VIII. Solución Propuesta
+    story.append(Paragraph("VIII. POSIBLE SOLUCIÓN", section_style))
+    if solucion_caso:
+        story.append(Paragraph(solucion_caso.solucion_propuesta or 'No especificada', normal_style))
+        conciliacion = "Sí" if solucion_caso.susceptible_conciliacion else "No"
+        story.append(Paragraph(f"<b>Susceptible de conciliación:</b> {conciliacion}", normal_style))
+    else:
+        story.append(Paragraph("No se encontró información de la solución", normal_style))
+
+    # Espacio para firma
+    story.append(Spacer(1, 40))
+    story.append(Paragraph("DECLARACIÓN Y FIRMA", section_style))
+    story.append(Paragraph(
+        "Declaro bajo la gravedad de juramento que la información aquí consignada es veraz y completa. "
+        "Autorizo el tratamiento de mis datos personales conforme a la ley de protección de datos.",
+        normal_style
+    ))
+    story.append(Spacer(1, 30))
+
+    # Línea de firma
+    firma_data = [
+        ['', ''],
+        ['_' * 50, '_' * 30],
+        ['Firma del Usuario', 'Fecha'],
+        ['', ''],
+        ['Nombre: ' + (usuario_asesorado.full_name if usuario_asesorado else '_______________'),
+         f'C.C. {usuario_asesorado.document_number if usuario_asesorado else "_______________"}'],
+    ]
+    firma_table = Table(firma_data, colWidths=[10*cm, 6*cm])
+    firma_table.setStyle(TableStyle([
+        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+        ('FONTSIZE', (0, 0), (-1, -1), 9),
+        ('TOPPADDING', (0, 0), (-1, -1), 5),
+    ]))
+    story.append(firma_table)
+
+    # Pie de página
+    story.append(Spacer(1, 20))
+    story.append(Paragraph(
+        f"<i>Documento generado el {datetime.now().strftime('%d/%m/%Y %H:%M')} - Sistema Consultorio Jurídico UNAB</i>",
+        ParagraphStyle('Footer', parent=styles['Normal'], fontSize=7, alignment=1, textColor=colors.gray)
+    ))
+
+    # Generar PDF
+    doc.build(story)
+
+    pdf = buffer.getvalue()
+    buffer.close()
+    response.write(pdf)
+
+    return response
+
+@login_required
+def subir_documento_firmado(request, nua):
+    """Subir documento firmado escaneado"""
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Método no permitido'}, status=405)
+
+    caso = get_object_or_404(ConsultorioJuridico, nua=nua, created_by=request.user)
+
+    if 'documento_firmado' not in request.FILES:
+        return JsonResponse({'error': 'No se encontró el archivo'}, status=400)
+
+    archivo = request.FILES['documento_firmado']
+
+    # Validar tipo de archivo
+    allowed_types = ['application/pdf', 'image/jpeg', 'image/png']
+    if archivo.content_type not in allowed_types:
+        return JsonResponse({'error': 'Tipo de archivo no permitido. Use PDF, JPG o PNG.'}, status=400)
+
+    # Validar tamaño (máximo 10MB)
+    if archivo.size > 10 * 1024 * 1024:
+        return JsonResponse({'error': 'El archivo excede el tamaño máximo de 10MB'}, status=400)
+
+    from django.utils import timezone
+
+    # Guardar el archivo
+    caso.documento_firmado = archivo
+    caso.fecha_firma = timezone.now()
+    caso.save()
+
+    return JsonResponse({
+        'success': True,
+        'message': 'Documento firmado subido correctamente',
+        'filename': archivo.name
+    })
+
+@login_required
+def asistente_legal_ia(request):
+    """Asistente de IA para sugerir artículos legales basado en los hechos"""
+    import json
+    from django.conf import settings
+
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Método no permitido'}, status=405)
+
+    try:
+        data = json.loads(request.body)
+        hechos = data.get('hechos', '')
+        area_juridica = data.get('area_juridica', '')
+
+        if not hechos:
+            return JsonResponse({'error': 'Debe proporcionar la descripción de los hechos'}, status=400)
+
+        # Verificar que la API key esté configurada
+        api_key = settings.OPENAI_API_KEY
+        if not api_key:
+            return JsonResponse({
+                'error': 'El servicio de IA no está configurado. Contacte al administrador.'
+            }, status=503)
+
+        # Importar OpenAI
+        from openai import OpenAI
+        client = OpenAI(api_key=api_key)
+
+        # Crear el prompt para el análisis legal
+        prompt = f"""Eres un asistente legal experto en derecho colombiano para el Consultorio Jurídico de la Universidad Autónoma de Bucaramanga.
+
+Analiza los siguientes hechos y proporciona:
+1. Un análisis breve del caso (2-3 oraciones)
+2. Los artículos legales colombianos más relevantes (máximo 5)
+3. Recomendaciones prácticas para el usuario (2-3 puntos)
+
+ÁREA JURÍDICA: {area_juridica if area_juridica else 'No especificada'}
+
+HECHOS DEL CASO:
+{hechos}
+
+Responde en formato JSON con la siguiente estructura:
+{{
+    "analisis": "Análisis breve del caso",
+    "articulos": [
+        {{
+            "codigo": "Nombre del código o ley",
+            "articulo": "Número del artículo",
+            "descripcion": "Breve descripción de qué trata y por qué aplica"
+        }}
+    ],
+    "recomendaciones": [
+        "Recomendación 1",
+        "Recomendación 2"
+    ]
+}}
+
+IMPORTANTE:
+- Cita solo artículos reales del derecho colombiano
+- Incluye códigos como: Código Civil, Código Penal, Código Laboral, Código de Comercio, Constitución Política, etc.
+- Sé específico con los números de artículos
+- Mantén las explicaciones claras y accesibles"""
+
+        # Llamar a la API de OpenAI
+        response = client.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=[
+                {"role": "system", "content": "Eres un asistente legal experto en derecho colombiano. Siempre respondes en JSON válido."},
+                {"role": "user", "content": prompt}
+            ],
+            temperature=0.3,
+            max_tokens=1500
+        )
+
+        # Obtener la respuesta
+        respuesta_texto = response.choices[0].message.content
+
+        # Intentar parsear como JSON
+        try:
+            # Limpiar la respuesta si viene con markdown
+            if "```json" in respuesta_texto:
+                respuesta_texto = respuesta_texto.split("```json")[1].split("```")[0]
+            elif "```" in respuesta_texto:
+                respuesta_texto = respuesta_texto.split("```")[1].split("```")[0]
+
+            respuesta_json = json.loads(respuesta_texto.strip())
+            return JsonResponse({
+                'success': True,
+                'data': respuesta_json
+            })
+        except json.JSONDecodeError:
+            # Si no es JSON válido, devolver como texto
+            return JsonResponse({
+                'success': True,
+                'data': {
+                    'analisis': respuesta_texto,
+                    'articulos': [],
+                    'recomendaciones': []
+                }
+            })
+
+    except Exception as e:
+        return JsonResponse({
+            'error': f'Error al procesar la solicitud: {str(e)}'
+        }, status=500)
+
+@login_required
 def generar_reporte_excel(request):
     """Generar reporte Excel de casos del usuario"""
     import pandas as pd

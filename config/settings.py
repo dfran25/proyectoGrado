@@ -16,6 +16,9 @@ SECRET_KEY = config('SECRET_KEY', default='django-insecure-change-this-in-produc
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config('DEBUG', default=False, cast=bool)
 
+# OpenAI API Key para funcionalidad de IA
+OPENAI_API_KEY = config('OPENAI_API_KEY', default='')
+
 ALLOWED_HOSTS = [
     'diegolozano.com.co',
     'www.diegolozano.com.co',
