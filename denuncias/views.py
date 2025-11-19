@@ -1244,6 +1244,94 @@ def caso_detalle(request, caso_id):
     return render(request, 'denuncias/caso_detalle.html', context)
 
 def register(request):
+    """Vista para registro de nuevos usuarios"""
+    if request.user.is_authenticated:
+        return redirect('denuncias:dashboard')
+
+    if request.method == 'POST':
+        # Obtener datos del formulario
+        username = request.POST.get('username', '').strip()
+        email = request.POST.get('email', '').strip()
+        password1 = request.POST.get('password1', '')
+        password2 = request.POST.get('password2', '')
+        first_name = request.POST.get('first_name', '').strip()
+        last_name = request.POST.get('last_name', '').strip()
+        telefono = request.POST.get('telefono', '').strip()
+        document_type = request.POST.get('document_type', 'CC')
+        document_number = request.POST.get('document_number', '').strip()
+        address = request.POST.get('address', '').strip()
+        city = request.POST.get('city', '').strip()
+        neighborhood = request.POST.get('neighborhood', '').strip()
+
+        # Validaciones
+        errors = []
+
+        if not username:
+            errors.append('El nombre de usuario es obligatorio')
+        elif User.objects.filter(username=username).exists():
+            errors.append('Este nombre de usuario ya está en uso')
+
+        if not email:
+            errors.append('El correo electrónico es obligatorio')
+        elif User.objects.filter(email=email).exists():
+            errors.append('Este correo electrónico ya está registrado')
+
+        if not password1:
+            errors.append('La contraseña es obligatoria')
+        elif len(password1) < 8:
+            errors.append('La contraseña debe tener al menos 8 caracteres')
+        elif password1 != password2:
+            errors.append('Las contraseñas no coinciden')
+
+        if not first_name:
+            errors.append('El nombre es obligatorio')
+
+        if not last_name:
+            errors.append('El apellido es obligatorio')
+
+        if not document_number:
+            errors.append('El número de documento es obligatorio')
+        elif User.objects.filter(document_number=document_number).exists():
+            errors.append('Este número de documento ya está registrado')
+
+        if errors:
+            for error in errors:
+                messages.error(request, error)
+            return render(request, 'registration/register.html', {
+                'form_data': request.POST
+            })
+
+        # Crear usuario
+        try:
+            user = User.objects.create_user(
+                username=username,
+                email=email,
+                password=password1,
+                first_name=first_name,
+                last_name=last_name,
+                telefono=telefono,
+                document_type=document_type,
+                document_number=document_number,
+                address=address,
+                city=city,
+                neighborhood=neighborhood,
+                rol='cliente'  # Por defecto es cliente
+            )
+
+            messages.success(request, f'¡Cuenta creada exitosamente! Bienvenido/a {first_name}.')
+
+            # Iniciar sesión automáticamente
+            from django.contrib.auth import login
+            login(request, user)
+
+            return redirect('denuncias:dashboard')
+
+        except Exception as e:
+            messages.error(request, f'Error al crear la cuenta: {str(e)}')
+            return render(request, 'registration/register.html', {
+                'form_data': request.POST
+            })
+
     return render(request, 'registration/register.html')
     
     

@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Registro · Sistema Jurídico</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+  <style>
+    :root {
+      --brand-orange: #ff6600;
+      --brand-purple: #7c3aed;
+      --brand-orange-light: #ff7519;
+      --brand-purple-light: #8b5cf6;
+    }
+
+    body {
+      background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+      min-height: 100vh;
+      margin: 0;
+      padding: 0;
+    }
+
+    .brand-bar {
+      background: linear-gradient(135deg, var(--brand-orange) 0%, var(--brand-orange-light) 100%);
+      box-shadow: 0 2px 10px rgba(255, 102, 0, 0.2);
+    }
+
+    .navbar-brand {
+      font-size: 1.4rem;
+      transition: all 0.3s ease;
+      color: white !important;
+      text-decoration: none;
+    }
+
+    .navbar-brand:hover {
+      transform: translateY(-1px);
+      text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+      color: white !important;
+    }
+
+    .register-container {
+      min-height: calc(100vh - 120px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .register-card {
+      animation: slideUp 0.6s ease-out;
+      max-width: 600px;
+      width: 100%;
+    }
+
+    .card {
+      backdrop-filter: blur(10px);
+      background-color: rgba(255, 255, 255, 0.95);
+      border: 1px solid rgba(249, 115, 22, 0.1);
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+    }
+
+    .header-institutional {
+      background: linear-gradient(135deg, var(--brand-orange) 0%, var(--brand-purple) 100%) !important;
+    }
+
+    .btn-custom-primary {
+      background: linear-gradient(135deg, var(--brand-orange) 0%, var(--brand-orange-light) 100%);
+      border: none;
+      color: white;
+      transition: all 0.3s ease;
+    }
+
+    .btn-custom-primary:hover {
+      background: linear-gradient(135deg, var(--brand-orange-light) 0%, var(--brand-orange) 100%);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(249, 115, 22, 0.4);
+      color: white;
+    }
+
+    .password-toggle-container {
+      position: relative;
+    }
+
+    .password-toggle {
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      cursor: pointer;
+      color: #6b7280;
+      font-size: 1.1rem;
+      z-index: 10;
+      padding: 4px;
+      border-radius: 4px;
+      transition: all 0.2s ease;
+    }
+
+    .password-toggle:hover {
+      color: var(--brand-purple);
+      background-color: rgba(124, 58, 237, 0.1);
+    }
+
+    .form-control-with-toggle {
+      padding-right: 45px !important;
+    }
+
+    .form-control {
+      border: 2px solid #e2e8f0;
+      transition: all 0.3s ease;
+    }
+
+    .form-control:focus {
+      border-color: var(--brand-purple);
+      box-shadow: 0 0 0 0.2rem rgba(124, 58, 237, 0.25);
+    }
+
+    .form-label {
+      color: #374151;
+      font-weight: 600;
+      font-size: 0.9rem;
+    }
+
+    .link-institutional {
+      color: var(--brand-purple) !important;
+      text-decoration: none;
+      transition: color 0.3s ease;
+    }
+
+    .link-institutional:hover {
+      color: var(--brand-orange) !important;
+    }
+
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .alert-danger {
+      background-color: rgba(220, 53, 69, 0.1);
+      border: 1px solid rgba(220, 53, 69, 0.2);
+      color: #dc3545;
+    }
+
+    .alert-success {
+      background-color: rgba(25, 135, 84, 0.1);
+      border: 1px solid rgba(25, 135, 84, 0.2);
+      color: #198754;
+    }
+
+    .footer {
+      background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+      border-top: 3px solid var(--brand-orange);
+      padding: 20px 0;
+      margin-top: auto;
+    }
+
+    .section-divider {
+      border-top: 2px solid #e2e8f0;
+      margin: 1rem 0;
+      position: relative;
+    }
+
+    .section-title {
+      color: var(--brand-purple);
+      font-weight: 600;
+      font-size: 0.85rem;
+      margin-bottom: 1rem;
+    }
+
+    @media (max-width: 768px) {
+      .navbar-brand {
+        font-size: 1.2rem;
+      }
+
+      .register-container {
+        min-height: calc(100vh - 100px);
+        padding: 10px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Navbar -->
+  <nav class="navbar navbar-expand-lg navbar-dark brand-bar">
+    <div class="container">
+      <a class="navbar-brand fw-bold d-flex align-items-center" href="/accounts/login/">
+        <i class="bi bi-shield-check me-2"></i>
+        Sistema Jurídico
+      </a>
+    </div>
+  </nav>
+
+  <!-- Register Container -->
+  <div class="register-container">
+    <div class="card shadow-lg border-0 rounded-4 register-card">
+      <div class="card-header header-institutional text-white text-center rounded-top-4 py-4">
+        <h4 class="mb-0">
+          <i class="bi bi-person-plus me-2"></i>
+          Crear Cuenta
+        </h4>
+      </div>
+
+      <div class="card-body p-4">
+        <p class="text-center text-muted mb-4">Complete el formulario para registrarse en el sistema</p>
+
+        <!-- Mensajes -->
+        {% if messages %}
+          {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show mb-3" role="alert">
+              <i class="bi bi-{% if message.tags == 'error' %}exclamation-triangle{% else %}check-circle{% endif %} me-2"></i>
+              {{ message }}
+              <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+          {% endfor %}
+        {% endif %}
+
+        <form method="post">
+          {% csrf_token %}
+
+          <!-- Datos de Acceso -->
+          <div class="section-title">
+            <i class="bi bi-key me-1"></i> Datos de Acceso
+          </div>
+
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label for="username" class="form-label">
+                <i class="bi bi-person me-1"></i> Usuario *
+              </label>
+              <input type="text"
+                     name="username"
+                     id="username"
+                     class="form-control"
+                     required
+                     placeholder="Nombre de usuario"
+                     value="{{ form_data.username|default:'' }}">
+            </div>
+
+            <div class="col-md-6 mb-3">
+              <label for="email" class="form-label">
+                <i class="bi bi-envelope me-1"></i> Correo Electrónico *
+              </label>
+              <input type="email"
+                     name="email"
+                     id="email"
+                     class="form-control"
+                     required
+                     placeholder="correo@ejemplo.com"
+                     value="{{ form_data.email|default:'' }}">
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label for="password1" class="form-label">
+                <i class="bi bi-lock me-1"></i> Contraseña *
+              </label>
+              <div class="password-toggle-container">
+                <input type="password"
+                       name="password1"
+                       id="password1"
+                       class="form-control form-control-with-toggle"
+                       required
+                       placeholder="Mínimo 8 caracteres">
+                <span class="password-toggle" onclick="togglePassword('password1', 'icon1')">
+                  <i class="bi bi-eye" id="icon1"></i>
+                </span>
+              </div>
+            </div>
+
+            <div class="col-md-6 mb-3">
+              <label for="password2" class="form-label">
+                <i class="bi bi-lock-fill me-1"></i> Confirmar Contraseña *
+              </label>
+              <div class="password-toggle-container">
+                <input type="password"
+                       name="password2"
+                       id="password2"
+                       class="form-control form-control-with-toggle"
+                       required
+                       placeholder="Repita la contraseña">
+                <span class="password-toggle" onclick="togglePassword('password2', 'icon2')">
+                  <i class="bi bi-eye" id="icon2"></i>
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div class="section-divider"></div>
+
+          <!-- Datos Personales -->
+          <div class="section-title">
+            <i class="bi bi-person-vcard me-1"></i> Datos Personales
+          </div>
+
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label for="first_name" class="form-label">
+                Nombres *
+              </label>
+              <input type="text"
+                     name="first_name"
+                     id="first_name"
+                     class="form-control"
+                     required
+                     placeholder="Ingrese sus nombres"
+                     value="{{ form_data.first_name|default:'' }}">
+            </div>
+
+            <div class="col-md-6 mb-3">
+              <label for="last_name" class="form-label">
+                Apellidos *
+              </label>
+              <input type="text"
+                     name="last_name"
+                     id="last_name"
+                     class="form-control"
+                     required
+                     placeholder="Ingrese sus apellidos"
+                     value="{{ form_data.last_name|default:'' }}">
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="col-md-4 mb-3">
+              <label for="document_type" class="form-label">
+                Tipo Documento
+              </label>
+              <select name="document_type" id="document_type" class="form-select">
+                <option value="CC" {% if form_data.document_type == 'CC' %}selected{% endif %}>Cédula de Ciudadanía</option>
+                <option value="TI" {% if form_data.document_type == 'TI' %}selected{% endif %}>Tarjeta de Identidad</option>
+                <option value="CE" {% if form_data.document_type == 'CE' %}selected{% endif %}>Cédula de Extranjería</option>
+                <option value="PPT" {% if form_data.document_type == 'PPT' %}selected{% endif %}>Permiso por Protección Temporal</option>
+                <option value="OTRO" {% if form_data.document_type == 'OTRO' %}selected{% endif %}>Otro</option>
+              </select>
+            </div>
+
+            <div class="col-md-4 mb-3">
+              <label for="document_number" class="form-label">
+                Número Documento *
+              </label>
+              <input type="text"
+                     name="document_number"
+                     id="document_number"
+                     class="form-control"
+                     required
+                     placeholder="Número de documento"
+                     value="{{ form_data.document_number|default:'' }}">
+            </div>
+
+            <div class="col-md-4 mb-3">
+              <label for="telefono" class="form-label">
+                Teléfono
+              </label>
+              <input type="tel"
+                     name="telefono"
+                     id="telefono"
+                     class="form-control"
+                     placeholder="Ej: 3001234567"
+                     value="{{ form_data.telefono|default:'' }}">
+            </div>
+          </div>
+
+          <div class="section-divider"></div>
+
+          <!-- Dirección -->
+          <div class="section-title">
+            <i class="bi bi-geo-alt me-1"></i> Dirección (Opcional)
+          </div>
+
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label for="city" class="form-label">
+                Ciudad
+              </label>
+              <input type="text"
+                     name="city"
+                     id="city"
+                     class="form-control"
+                     placeholder="Ej: Bucaramanga"
+                     value="{{ form_data.city|default:'' }}">
+            </div>
+
+            <div class="col-md-6 mb-3">
+              <label for="neighborhood" class="form-label">
+                Barrio
+              </label>
+              <input type="text"
+                     name="neighborhood"
+                     id="neighborhood"
+                     class="form-control"
+                     placeholder="Nombre del barrio"
+                     value="{{ form_data.neighborhood|default:'' }}">
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label for="address" class="form-label">
+              Dirección
+            </label>
+            <input type="text"
+                   name="address"
+                   id="address"
+                   class="form-control"
+                   placeholder="Ej: Calle 45 # 23-15"
+                   value="{{ form_data.address|default:'' }}">
+          </div>
+
+          <!-- Botón de envío -->
+          <div class="d-grid mt-4">
+            <button type="submit" class="btn btn-custom-primary btn-lg shadow-sm rounded-3">
+              <i class="bi bi-person-plus me-2"></i>
+              Crear Cuenta
+            </button>
+          </div>
+
+          <!-- Enlace a login -->
+          <div class="text-center mt-3">
+            <small class="text-muted">
+              ¿Ya tienes cuenta?
+              <a href="{% url 'login' %}" class="link-institutional">
+                Iniciar Sesión
+              </a>
+            </small>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container">
+      <div class="row">
+        <div class="col-md-6">
+          <p class="mb-0 text-muted">
+            <i class="bi bi-shield-check me-1"></i>
+            Sistema Jurídico © {% now "Y" %}
+          </p>
+        </div>
+        <div class="col-md-6 text-md-end">
+          <small class="text-muted">
+            Versión 1.0 | <a href="#" class="text-decoration-none">Soporte</a>
+          </small>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+  <script>
+    function togglePassword(inputId, iconId) {
+      const input = document.getElementById(inputId);
+      const icon = document.getElementById(iconId);
+
+      if (input.type === 'password') {
+        input.type = 'text';
+        icon.className = 'bi bi-eye-slash';
+      } else {
+        input.type = 'password';
+        icon.className = 'bi bi-eye';
+      }
+    }
+
+    // Auto-dismiss alerts after 5 seconds
+    document.addEventListener('DOMContentLoaded', function() {
+      const alerts = document.querySelectorAll('.alert');
+      alerts.forEach(function(alert) {
+        setTimeout(function() {
+          if (bootstrap && bootstrap.Alert) {
+            const bsAlert = new bootstrap.Alert(alert);
+            bsAlert.close();
+          }
+        }, 5000);
+      });
+    });
+  </script>
+</body>
+</html>
