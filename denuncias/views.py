@@ -563,13 +563,13 @@ def generar_reporte_casos(request):
 
 @login_required
 def generar_pdf_solicitud(request, nua):
-    """Generar PDF de una solicitud individual con línea de firma"""
-    from reportlab.pdfgen import canvas
+    """Generar PDF de una solicitud individual con línea de firma - Formato Profesional"""
     from reportlab.lib.pagesizes import A4
     from reportlab.lib import colors
-    from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+    from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer, HRFlowable
     from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-    from reportlab.lib.units import inch, cm
+    from reportlab.lib.units import cm
+    from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_JUSTIFY
     import io
     from datetime import datetime
 
@@ -614,94 +614,232 @@ def generar_pdf_solicitud(request, nua):
     response['Content-Disposition'] = f'attachment; filename="solicitud_{nua}.pdf"'
 
     buffer = io.BytesIO()
-    doc = SimpleDocTemplate(buffer, pagesize=A4, topMargin=1*cm, bottomMargin=2*cm)
+    doc = SimpleDocTemplate(
+        buffer,
+        pagesize=A4,
+        topMargin=1.5*cm,
+        bottomMargin=1.5*cm,
+        leftMargin=2*cm,
+        rightMargin=2*cm
+    )
+
+    # Colores institucionales
+    color_primario = colors.HexColor('#7c3aed')  # Púrpura
+    color_secundario = colors.HexColor('#f97316')  # Naranja
+    color_fondo = colors.HexColor('#f8f4ff')  # Fondo claro
+    color_borde = colors.HexColor('#e9d5ff')  # Borde claro
 
     # Estilos
     styles = getSampleStyleSheet()
-    title_style = ParagraphStyle(
-        'CustomTitle',
+
+    # Estilo para header institucional
+    header_style = ParagraphStyle(
+        'Header',
         parent=styles['Heading1'],
-        fontSize=16,
-        spaceAfter=20,
-        alignment=1,
-        textColor=colors.HexColor('#7c3aed')
+        fontSize=18,
+        spaceAfter=5,
+        alignment=TA_CENTER,
+        textColor=color_primario,
+        fontName='Helvetica-Bold'
     )
+
+    subtitle_style = ParagraphStyle(
+        'Subtitle',
+        parent=styles['Heading2'],
+        fontSize=14,
+        spaceAfter=15,
+        alignment=TA_CENTER,
+        textColor=color_secundario,
+        fontName='Helvetica-Bold'
+    )
+
     section_style = ParagraphStyle(
         'SectionTitle',
         parent=styles['Heading2'],
-        fontSize=12,
-        spaceBefore=15,
-        spaceAfter=10,
-        textColor=colors.HexColor('#f97316')
+        fontSize=11,
+        spaceBefore=12,
+        spaceAfter=8,
+        textColor=colors.white,
+        fontName='Helvetica-Bold',
+        backColor=color_primario,
+        borderPadding=5
     )
+
+    subsection_style = ParagraphStyle(
+        'SubSection',
+        parent=styles['Heading3'],
+        fontSize=10,
+        spaceBefore=8,
+        spaceAfter=5,
+        textColor=color_secundario,
+        fontName='Helvetica-Bold'
+    )
+
     normal_style = ParagraphStyle(
         'CustomNormal',
         parent=styles['Normal'],
         fontSize=9,
-        spaceAfter=5
+        spaceAfter=4,
+        alignment=TA_JUSTIFY
+    )
+
+    nua_style = ParagraphStyle(
+        'NUA',
+        parent=styles['Normal'],
+        fontSize=12,
+        alignment=TA_CENTER,
+        textColor=color_primario,
+        fontName='Helvetica-Bold',
+        borderColor=color_secundario,
+        borderWidth=2,
+        borderPadding=10
     )
 
     story = []
 
-    # Título
-    story.append(Paragraph("CONSULTORIO JURÍDICO UNAB", title_style))
-    story.append(Paragraph("SOLICITUD DE ASESORÍA JURÍDICA", title_style))
+    # =================== HEADER ===================
+    # Línea decorativa superior
+    story.append(HRFlowable(width="100%", thickness=3, color=color_primario))
     story.append(Spacer(1, 10))
 
-    # Info del caso
-    story.append(Paragraph(f"<b>NUA:</b> {caso.nua}", normal_style))
-    story.append(Paragraph(f"<b>Fecha:</b> {caso.consultation_date.strftime('%d/%m/%Y')}", normal_style))
-    story.append(Paragraph(f"<b>Área:</b> {caso.get_consultation_area_display()}", normal_style))
+    # Título institucional
+    story.append(Paragraph("UNIVERSIDAD AUTÓNOMA DE BUCARAMANGA", header_style))
+    story.append(Paragraph("CONSULTORIO JURÍDICO", subtitle_style))
+    story.append(Spacer(1, 5))
+
+    # Línea decorativa
+    story.append(HRFlowable(width="100%", thickness=1, color=color_secundario))
     story.append(Spacer(1, 15))
 
-    # I. Información del Usuario
-    story.append(Paragraph("I. INFORMACIÓN DEL USUARIO", section_style))
+    # =================== CUADRO NUA ===================
+    nua_data = [[Paragraph(f"<b>NÚMERO ÚNICO DE ASESORÍA (NUA)</b>",
+                          ParagraphStyle('NUATitle', parent=normal_style, alignment=TA_CENTER, fontSize=8, textColor=colors.gray))],
+                [Paragraph(f"<b>{caso.nua}</b>", nua_style)]]
+
+    nua_table = Table(nua_data, colWidths=[14*cm])
+    nua_table.setStyle(TableStyle([
+        ('BOX', (0, 0), (-1, -1), 2, color_secundario),
+        ('BACKGROUND', (0, 0), (-1, -1), color_fondo),
+        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+        ('TOPPADDING', (0, 0), (-1, -1), 8),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
+    ]))
+    story.append(nua_table)
+    story.append(Spacer(1, 10))
+
+    # =================== INFO GENERAL ===================
+    info_general = [
+        [Paragraph("<b>Fecha de Solicitud:</b>", normal_style),
+         Paragraph(caso.consultation_date.strftime('%d de %B de %Y'), normal_style)],
+        [Paragraph("<b>Área Jurídica:</b>", normal_style),
+         Paragraph(caso.get_consultation_area_display(), normal_style)],
+        [Paragraph("<b>Estado:</b>", normal_style),
+         Paragraph(caso.get_status_display(), normal_style)],
+    ]
+
+    info_table = Table(info_general, colWidths=[5*cm, 9*cm])
+    info_table.setStyle(TableStyle([
+        ('GRID', (0, 0), (-1, -1), 0.5, color_borde),
+        ('BACKGROUND', (0, 0), (0, -1), color_fondo),
+        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+        ('TOPPADDING', (0, 0), (-1, -1), 5),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 5),
+        ('LEFTPADDING', (0, 0), (-1, -1), 8),
+    ]))
+    story.append(info_table)
+    story.append(Spacer(1, 15))
+
+    # =================== I. INFORMACIÓN DEL USUARIO ===================
+    story.append(Paragraph("I. DATOS DEL SOLICITANTE", section_style))
+    story.append(Spacer(1, 5))
+
     if usuario_asesorado:
         info_data = [
-            ['Nombre completo:', usuario_asesorado.full_name or 'No especificado'],
-            ['Documento:', f"{usuario_asesorado.get_document_type_display()} {usuario_asesorado.document_number}"],
-            ['Dirección:', usuario_asesorado.address or 'No especificado'],
-            ['Ciudad:', usuario_asesorado.city or 'No especificado'],
-            ['Teléfono:', usuario_asesorado.phone or 'No especificado'],
-            ['Email:', usuario_asesorado.email or 'No especificado'],
+            [Paragraph("<b>Nombre Completo</b>", normal_style),
+             Paragraph(usuario_asesorado.full_name or 'No especificado', normal_style)],
+            [Paragraph("<b>Tipo y No. Documento</b>", normal_style),
+             Paragraph(f"{usuario_asesorado.get_document_type_display()} {usuario_asesorado.document_number}", normal_style)],
+            [Paragraph("<b>Dirección</b>", normal_style),
+             Paragraph(usuario_asesorado.address or 'No especificado', normal_style)],
+            [Paragraph("<b>Ciudad</b>", normal_style),
+             Paragraph(usuario_asesorado.city or 'No especificado', normal_style)],
+            [Paragraph("<b>Teléfono</b>", normal_style),
+             Paragraph(usuario_asesorado.phone or 'No especificado', normal_style)],
+            [Paragraph("<b>Correo Electrónico</b>", normal_style),
+             Paragraph(usuario_asesorado.email or 'No especificado', normal_style)],
         ]
-        table = Table(info_data, colWidths=[4*cm, 12*cm])
+        table = Table(info_data, colWidths=[5*cm, 9*cm])
         table.setStyle(TableStyle([
-            ('FONTSIZE', (0, 0), (-1, -1), 8),
-            ('FONTNAME', (0, 0), (0, -1), 'Helvetica-Bold'),
-            ('VALIGN', (0, 0), (-1, -1), 'TOP'),
-            ('BOTTOMPADDING', (0, 0), (-1, -1), 3),
+            ('GRID', (0, 0), (-1, -1), 0.5, color_borde),
+            ('BACKGROUND', (0, 0), (0, -1), color_fondo),
+            ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+            ('TOPPADDING', (0, 0), (-1, -1), 4),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 4),
+            ('LEFTPADDING', (0, 0), (-1, -1), 6),
         ]))
         story.append(table)
     else:
         story.append(Paragraph("No se encontró información del usuario", normal_style))
 
-    # II. Actividad Económica
-    story.append(Paragraph("II. ACTIVIDAD ECONÓMICA", section_style))
-    if actividad_economica:
-        story.append(Paragraph(f"<b>Tipo:</b> {actividad_economica.get_activity_type_display()}", normal_style))
-        if actividad_economica.employer_name:
-            story.append(Paragraph(f"<b>Empleador:</b> {actividad_economica.employer_name}", normal_style))
-    else:
-        story.append(Paragraph("No se encontró información económica", normal_style))
+    # =================== II. ACTIVIDAD ECONÓMICA ===================
+    story.append(Paragraph("II. SITUACIÓN LABORAL", section_style))
+    story.append(Spacer(1, 5))
 
-    # III. Información Patrimonial
+    if actividad_economica:
+        act_data = [
+            [Paragraph("<b>Tipo de Actividad</b>", normal_style),
+             Paragraph(actividad_economica.get_activity_type_display(), normal_style)],
+        ]
+        if actividad_economica.employer_name:
+            act_data.append([Paragraph("<b>Empleador</b>", normal_style),
+                           Paragraph(actividad_economica.employer_name, normal_style)])
+
+        act_table = Table(act_data, colWidths=[5*cm, 9*cm])
+        act_table.setStyle(TableStyle([
+            ('GRID', (0, 0), (-1, -1), 0.5, color_borde),
+            ('BACKGROUND', (0, 0), (0, -1), color_fondo),
+            ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+            ('TOPPADDING', (0, 0), (-1, -1), 4),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 4),
+            ('LEFTPADDING', (0, 0), (-1, -1), 6),
+        ]))
+        story.append(act_table)
+    else:
+        story.append(Paragraph("No se encontró información laboral", normal_style))
+
+    # =================== III. INFORMACIÓN PATRIMONIAL ===================
     story.append(Paragraph("III. INFORMACIÓN PATRIMONIAL", section_style))
+    story.append(Spacer(1, 5))
+
     if info_patrimonial:
-        patrimonio = []
+        pat_data = []
         if info_patrimonial.tiene_casa:
-            patrimonio.append(f"Casa(s): {info_patrimonial.cantidad_casas}")
+            pat_data.append([Paragraph("<b>Bienes Inmuebles</b>", normal_style),
+                           Paragraph(f"{info_patrimonial.cantidad_casas} casa(s)", normal_style)])
         if info_patrimonial.tiene_vehiculo:
-            patrimonio.append(f"Vehículo(s): {info_patrimonial.cantidad_vehiculos}")
-        if patrimonio:
-            story.append(Paragraph(", ".join(patrimonio), normal_style))
-        else:
-            story.append(Paragraph("Sin bienes declarados", normal_style))
+            pat_data.append([Paragraph("<b>Vehículos</b>", normal_style),
+                           Paragraph(f"{info_patrimonial.cantidad_vehiculos} vehículo(s)", normal_style)])
+        if not pat_data:
+            pat_data.append([Paragraph("<b>Estado</b>", normal_style),
+                           Paragraph("Sin bienes declarados", normal_style)])
+
+        pat_table = Table(pat_data, colWidths=[5*cm, 9*cm])
+        pat_table.setStyle(TableStyle([
+            ('GRID', (0, 0), (-1, -1), 0.5, color_borde),
+            ('BACKGROUND', (0, 0), (0, -1), color_fondo),
+            ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+            ('TOPPADDING', (0, 0), (-1, -1), 4),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 4),
+            ('LEFTPADDING', (0, 0), (-1, -1), 6),
+        ]))
+        story.append(pat_table)
     else:
         story.append(Paragraph("No se encontró información patrimonial", normal_style))
 
-    # IV. Información Económica
-    story.append(Paragraph("IV. INFORMACIÓN ECONÓMICA", section_style))
+    # =================== IV. INFORMACIÓN ECONÓMICA ===================
+    story.append(Paragraph("IV. SITUACIÓN ECONÓMICA", section_style))
+    story.append(Spacer(1, 5))
+
     if info_economica:
         total_ingresos = (info_economica.ingresos_salariales + info_economica.ingresos_honorarios +
                         info_economica.ingresos_arrendamientos + info_economica.ingresos_pensiones +
@@ -709,67 +847,166 @@ def generar_pdf_solicitud(request, nua):
         total_gastos = (info_economica.gastos_alimentacion + info_economica.gastos_transporte +
                        info_economica.gastos_servicios_publicos + info_economica.gastos_arriendo +
                        info_economica.otros_egresos)
-        story.append(Paragraph(f"<b>Total Ingresos:</b> ${total_ingresos:,.0f}", normal_style))
-        story.append(Paragraph(f"<b>Total Gastos:</b> ${total_gastos:,.0f}", normal_style))
+
+        eco_data = [
+            [Paragraph("<b>Total Ingresos Mensuales</b>", normal_style),
+             Paragraph(f"${total_ingresos:,.0f} COP", normal_style)],
+            [Paragraph("<b>Total Gastos Mensuales</b>", normal_style),
+             Paragraph(f"${total_gastos:,.0f} COP", normal_style)],
+            [Paragraph("<b>Balance</b>", normal_style),
+             Paragraph(f"${total_ingresos - total_gastos:,.0f} COP", normal_style)],
+        ]
+
+        eco_table = Table(eco_data, colWidths=[5*cm, 9*cm])
+        eco_table.setStyle(TableStyle([
+            ('GRID', (0, 0), (-1, -1), 0.5, color_borde),
+            ('BACKGROUND', (0, 0), (0, -1), color_fondo),
+            ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+            ('TOPPADDING', (0, 0), (-1, -1), 4),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 4),
+            ('LEFTPADDING', (0, 0), (-1, -1), 6),
+        ]))
+        story.append(eco_table)
     else:
         story.append(Paragraph("No se encontró información económica", normal_style))
 
-    # VI. Relación de los Hechos
-    story.append(Paragraph("VI. RELACIÓN DE LOS HECHOS", section_style))
+    # =================== V. RELACIÓN DE LOS HECHOS ===================
+    story.append(Paragraph("V. DESCRIPCIÓN DE LOS HECHOS", section_style))
+    story.append(Spacer(1, 5))
+
     if relacion_hechos and relacion_hechos.descripcion_hechos:
-        story.append(Paragraph(relacion_hechos.descripcion_hechos, normal_style))
+        # Crear tabla con borde para los hechos
+        hechos_data = [[Paragraph(relacion_hechos.descripcion_hechos, normal_style)]]
+        hechos_table = Table(hechos_data, colWidths=[14*cm])
+        hechos_table.setStyle(TableStyle([
+            ('BOX', (0, 0), (-1, -1), 1, color_borde),
+            ('BACKGROUND', (0, 0), (-1, -1), colors.white),
+            ('TOPPADDING', (0, 0), (-1, -1), 8),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
+            ('LEFTPADDING', (0, 0), (-1, -1), 8),
+            ('RIGHTPADDING', (0, 0), (-1, -1), 8),
+        ]))
+        story.append(hechos_table)
     else:
         story.append(Paragraph("No se describieron los hechos", normal_style))
 
-    # VII. Anexos
-    story.append(Paragraph("VII. ANEXOS APORTADOS", section_style))
+    # =================== VI. ANEXOS ===================
+    story.append(Paragraph("VI. DOCUMENTOS ANEXOS", section_style))
+    story.append(Spacer(1, 5))
+
     if anexos:
+        anexos_data = [[Paragraph("<b>No.</b>", normal_style),
+                       Paragraph("<b>Documento</b>", normal_style),
+                       Paragraph("<b>Folios</b>", normal_style)]]
         for i, anexo in enumerate(anexos, 1):
-            story.append(Paragraph(f"{i}. {anexo.nombre_anexo} ({anexo.numero_folios} folios)", normal_style))
-    else:
-        story.append(Paragraph("No se adjuntaron anexos", normal_style))
+            anexos_data.append([
+                Paragraph(str(i), normal_style),
+                Paragraph(anexo.nombre_anexo, normal_style),
+                Paragraph(str(anexo.numero_folios), normal_style)
+            ])
 
-    # VIII. Solución Propuesta
-    story.append(Paragraph("VIII. POSIBLE SOLUCIÓN", section_style))
+        anexos_table = Table(anexos_data, colWidths=[1.5*cm, 10*cm, 2.5*cm])
+        anexos_table.setStyle(TableStyle([
+            ('GRID', (0, 0), (-1, -1), 0.5, color_borde),
+            ('BACKGROUND', (0, 0), (-1, 0), color_primario),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+            ('ALIGN', (0, 0), (0, -1), 'CENTER'),
+            ('ALIGN', (2, 0), (2, -1), 'CENTER'),
+            ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+            ('TOPPADDING', (0, 0), (-1, -1), 4),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 4),
+        ]))
+        story.append(anexos_table)
+    else:
+        story.append(Paragraph("No se adjuntaron documentos anexos", normal_style))
+
+    # =================== VII. SOLUCIÓN PROPUESTA ===================
+    story.append(Paragraph("VII. EXPECTATIVAS DEL SOLICITANTE", section_style))
+    story.append(Spacer(1, 5))
+
     if solucion_caso:
-        story.append(Paragraph(solucion_caso.solucion_propuesta or 'No especificada', normal_style))
-        conciliacion = "Sí" if solucion_caso.susceptible_conciliacion else "No"
-        story.append(Paragraph(f"<b>Susceptible de conciliación:</b> {conciliacion}", normal_style))
+        sol_data = [
+            [Paragraph("<b>Solución Esperada</b>", normal_style),
+             Paragraph(solucion_caso.solucion_propuesta or 'No especificada', normal_style)],
+            [Paragraph("<b>Susceptible de Conciliación</b>", normal_style),
+             Paragraph("Sí" if solucion_caso.susceptible_conciliacion else "No", normal_style)],
+        ]
+
+        sol_table = Table(sol_data, colWidths=[5*cm, 9*cm])
+        sol_table.setStyle(TableStyle([
+            ('GRID', (0, 0), (-1, -1), 0.5, color_borde),
+            ('BACKGROUND', (0, 0), (0, -1), color_fondo),
+            ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+            ('TOPPADDING', (0, 0), (-1, -1), 4),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 4),
+            ('LEFTPADDING', (0, 0), (-1, -1), 6),
+        ]))
+        story.append(sol_table)
     else:
-        story.append(Paragraph("No se encontró información de la solución", normal_style))
+        story.append(Paragraph("No se encontró información sobre la solución esperada", normal_style))
 
-    # Espacio para firma
-    story.append(Spacer(1, 40))
-    story.append(Paragraph("DECLARACIÓN Y FIRMA", section_style))
-    story.append(Paragraph(
-        "Declaro bajo la gravedad de juramento que la información aquí consignada es veraz y completa. "
-        "Autorizo el tratamiento de mis datos personales conforme a la ley de protección de datos.",
-        normal_style
-    ))
-    story.append(Spacer(1, 30))
+    # =================== DECLARACIÓN Y FIRMA ===================
+    story.append(Spacer(1, 25))
+    story.append(HRFlowable(width="100%", thickness=1, color=color_secundario))
+    story.append(Spacer(1, 10))
 
-    # Línea de firma
+    story.append(Paragraph("DECLARACIÓN JURAMENTADA Y AUTORIZACIÓN", section_style))
+    story.append(Spacer(1, 8))
+
+    declaracion_text = """
+    Declaro bajo la gravedad de juramento que la información aquí consignada es veraz, completa y exacta.
+    Autorizo de manera libre, expresa e informada el tratamiento de mis datos personales de conformidad
+    con la Ley 1581 de 2012 y demás normas concordantes. Entiendo que el Consultorio Jurídico de la UNAB
+    brinda asesoría gratuita y que la asignación de mi caso está sujeta a la disponibilidad y competencia
+    del consultorio.
+    """
+    story.append(Paragraph(declaracion_text.strip(), normal_style))
+    story.append(Spacer(1, 25))
+
+    # Cuadro de firma profesional
     firma_data = [
-        ['', ''],
-        ['_' * 50, '_' * 30],
-        ['Firma del Usuario', 'Fecha'],
-        ['', ''],
-        ['Nombre: ' + (usuario_asesorado.full_name if usuario_asesorado else '_______________'),
-         f'C.C. {usuario_asesorado.document_number if usuario_asesorado else "_______________"}'],
+        [Paragraph("", normal_style), Paragraph("", normal_style)],
+        [Paragraph("_" * 40, ParagraphStyle('firma', alignment=TA_CENTER, fontSize=9)),
+         Paragraph("_" * 25, ParagraphStyle('firma', alignment=TA_CENTER, fontSize=9))],
+        [Paragraph("<b>FIRMA DEL SOLICITANTE</b>",
+                  ParagraphStyle('firma_label', alignment=TA_CENTER, fontSize=8, textColor=color_primario)),
+         Paragraph("<b>FECHA</b>",
+                  ParagraphStyle('firma_label', alignment=TA_CENTER, fontSize=8, textColor=color_primario))],
+        [Paragraph("", normal_style), Paragraph("", normal_style)],
+        [Paragraph(f"Nombre: {usuario_asesorado.full_name if usuario_asesorado else '_______________'}",
+                  ParagraphStyle('firma_info', alignment=TA_CENTER, fontSize=8)),
+         Paragraph(f"C.C. {usuario_asesorado.document_number if usuario_asesorado else '_______________'}",
+                  ParagraphStyle('firma_info', alignment=TA_CENTER, fontSize=8))],
     ]
-    firma_table = Table(firma_data, colWidths=[10*cm, 6*cm])
+
+    firma_table = Table(firma_data, colWidths=[9*cm, 5*cm])
     firma_table.setStyle(TableStyle([
         ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-        ('FONTSIZE', (0, 0), (-1, -1), 9),
-        ('TOPPADDING', (0, 0), (-1, -1), 5),
+        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+        ('TOPPADDING', (0, 0), (-1, -1), 3),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 3),
     ]))
     story.append(firma_table)
 
-    # Pie de página
+    # =================== PIE DE PÁGINA ===================
     story.append(Spacer(1, 20))
+    story.append(HRFlowable(width="100%", thickness=2, color=color_primario))
+    story.append(Spacer(1, 5))
+
+    footer_style = ParagraphStyle(
+        'Footer',
+        parent=styles['Normal'],
+        fontSize=7,
+        alignment=TA_CENTER,
+        textColor=colors.gray
+    )
     story.append(Paragraph(
-        f"<i>Documento generado el {datetime.now().strftime('%d/%m/%Y %H:%M')} - Sistema Consultorio Jurídico UNAB</i>",
-        ParagraphStyle('Footer', parent=styles['Normal'], fontSize=7, alignment=1, textColor=colors.gray)
+        f"Documento generado el {datetime.now().strftime('%d/%m/%Y a las %H:%M')}",
+        footer_style
+    ))
+    story.append(Paragraph(
+        "Sistema de Gestión - Consultorio Jurídico UNAB | Este documento es válido sin firma digital",
+        footer_style
     ))
 
     # Generar PDF
@@ -842,7 +1079,11 @@ def asistente_legal_ia(request):
 
         # Importar OpenAI
         from openai import OpenAI
-        client = OpenAI(api_key=api_key)
+        import httpx
+
+        # Crear cliente httpx sin proxies para evitar error en cPanel
+        http_client = httpx.Client(proxy=None)
+        client = OpenAI(api_key=api_key, http_client=http_client)
 
         # Crear el prompt para el análisis legal
         prompt = f"""Eres un asistente legal experto en derecho colombiano para el Consultorio Jurídico de la Universidad Autónoma de Bucaramanga.
@@ -1003,6 +1244,94 @@ def caso_detalle(request, caso_id):
     return render(request, 'denuncias/caso_detalle.html', context)
 
 def register(request):
+    """Vista para registro de nuevos usuarios"""
+    if request.user.is_authenticated:
+        return redirect('denuncias:dashboard')
+
+    if request.method == 'POST':
+        # Obtener datos del formulario
+        username = request.POST.get('username', '').strip()
+        email = request.POST.get('email', '').strip()
+        password1 = request.POST.get('password1', '')
+        password2 = request.POST.get('password2', '')
+        first_name = request.POST.get('first_name', '').strip()
+        last_name = request.POST.get('last_name', '').strip()
+        telefono = request.POST.get('telefono', '').strip()
+        document_type = request.POST.get('document_type', 'CC')
+        document_number = request.POST.get('document_number', '').strip()
+        address = request.POST.get('address', '').strip()
+        city = request.POST.get('city', '').strip()
+        neighborhood = request.POST.get('neighborhood', '').strip()
+
+        # Validaciones
+        errors = []
+
+        if not username:
+            errors.append('El nombre de usuario es obligatorio')
+        elif User.objects.filter(username=username).exists():
+            errors.append('Este nombre de usuario ya está en uso')
+
+        if not email:
+            errors.append('El correo electrónico es obligatorio')
+        elif User.objects.filter(email=email).exists():
+            errors.append('Este correo electrónico ya está registrado')
+
+        if not password1:
+            errors.append('La contraseña es obligatoria')
+        elif len(password1) < 8:
+            errors.append('La contraseña debe tener al menos 8 caracteres')
+        elif password1 != password2:
+            errors.append('Las contraseñas no coinciden')
+
+        if not first_name:
+            errors.append('El nombre es obligatorio')
+
+        if not last_name:
+            errors.append('El apellido es obligatorio')
+
+        if not document_number:
+            errors.append('El número de documento es obligatorio')
+        elif User.objects.filter(document_number=document_number).exists():
+            errors.append('Este número de documento ya está registrado')
+
+        if errors:
+            for error in errors:
+                messages.error(request, error)
+            return render(request, 'registration/register.html', {
+                'form_data': request.POST
+            })
+
+        # Crear usuario
+        try:
+            user = User.objects.create_user(
+                username=username,
+                email=email,
+                password=password1,
+                first_name=first_name,
+                last_name=last_name,
+                telefono=telefono,
+                document_type=document_type,
+                document_number=document_number,
+                address=address,
+                city=city,
+                neighborhood=neighborhood,
+                rol='cliente'  # Por defecto es cliente
+            )
+
+            messages.success(request, f'¡Cuenta creada exitosamente! Bienvenido/a {first_name}.')
+
+            # Iniciar sesión automáticamente
+            from django.contrib.auth import login
+            login(request, user)
+
+            return redirect('denuncias:dashboard')
+
+        except Exception as e:
+            messages.error(request, f'Error al crear la cuenta: {str(e)}')
+            return render(request, 'registration/register.html', {
+                'form_data': request.POST
+            })
+
     return render(request, 'registration/register.html')
     
     

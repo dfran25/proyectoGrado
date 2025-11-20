@@ -357,13 +357,25 @@
         
         <div class="action-card">
           <div class="action-icon">
-            <i class="bi bi-printer"></i>
+            <i class="bi bi-file-earmark-pdf"></i>
           </div>
-          <h6>Imprimir Comprobante</h6>
-          <p class="text-muted small mb-3">Guarde una copia física de su solicitud</p>
-          <button class="btn btn-outline-primary btn-sm print-btn no-print" onclick="window.print()">
-            <i class="bi bi-printer me-1"></i>Imprimir
-          </button>
+          <h6>{% if caso.documento_firmado %}Documento Firmado{% else %}Descargar Solicitud{% endif %}</h6>
+          <p class="text-muted small mb-3">
+            {% if caso.documento_firmado %}
+              Descargue su documento con firma
+            {% else %}
+              Descargue el PDF de su solicitud
+            {% endif %}
+          </p>
+          {% if caso.documento_firmado %}
+            <a href="{{ caso.documento_firmado.url }}" class="btn btn-success btn-sm" target="_blank">
+              <i class="bi bi-file-earmark-check me-1"></i>Ver Firmado
+            </a>
+          {% else %}
+            <a href="{% url 'denuncias:generar_pdf_solicitud' nua=caso.nua %}" class="btn btn-outline-primary btn-sm">
+              <i class="bi bi-download me-1"></i>Descargar PDF
+            </a>
+          {% endif %}
         </div>
         
         <div class="action-card">
